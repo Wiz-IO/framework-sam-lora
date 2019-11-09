@@ -204,16 +204,6 @@ void cmd_erase(void)
     send_answer(CONF);
 }
 
-int test_block(uint32_t addr, uint8_t *buff)
-{
-    if (0 == memcmp((uint8_t *)addr, buff, 64))
-    {
-        send_error(E_VERIFY);
-        return -1;
-    }
-    return 0;
-}
-
 void cmd_write(void)
 {
     struct __attribute__((__packed__)) p_write
@@ -228,7 +218,10 @@ void cmd_write(void)
         is_not_align(p.addr, 63))
         return;
     // DO WRITE
-    send_answer(CONF);
+    if (memcmp((uint8_t *)addr, buff, 64))
+        send_error(E_VERIFY);
+    else
+        send_answer(CONF);
 }
 
 void cmd_read(void)
