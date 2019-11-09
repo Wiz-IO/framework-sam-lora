@@ -1,2 +1,2 @@
 # framework-sam-lora
-framework-sam-lora Microchip Atmel SAMR3x
+https://github.com/Wiz-IO/platform-sam-lora
