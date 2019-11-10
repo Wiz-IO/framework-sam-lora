@@ -17,6 +17,8 @@
   Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
+#ifdef USE_IP
+
 #include <Arduino.h>
 #include <IPAddress.h>
 
@@ -108,10 +110,10 @@ size_t IPAddress::printTo(Print &p) const
     size_t n = 0;
     for (int i = 0; i < 3; i++)
     {
-        n += p.print(_address.bytes[i], 10); // DEC
+        n += p.print(_address.bytes[i], DEC);
         n += p.print('.');
     }
-    n += p.print(_address.bytes[3], 10); // DEC
+    n += p.print(_address.bytes[3], DEC);
     return n;
 }
 
@@ -121,3 +123,5 @@ String IPAddress::toString() const
     sprintf(szRet,"%u.%u.%u.%u", _address.bytes[0], _address.bytes[1], _address.bytes[2], _address.bytes[3]);
     return String(szRet);
 }
+
+#endif
