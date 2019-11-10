@@ -218,7 +218,7 @@ void cmd_write(void)
         is_not_align(p.addr, 63))
         return;
     // DO WRITE
-    if (memcmp((uint8_t *)addr, buff, 64))
+    if (memcmp((uint8_t *)p.addr, p.buff, 64))
         send_error(E_VERIFY);
     else
         send_answer(CONF);
