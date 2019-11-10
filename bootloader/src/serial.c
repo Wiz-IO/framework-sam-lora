@@ -222,6 +222,7 @@ void cmd_write(void)
         send_error(E_VERIFY);
     else
         send_answer(CONF);
+
 }
 
 void cmd_read(void)
