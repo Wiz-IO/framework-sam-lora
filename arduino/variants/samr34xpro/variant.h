@@ -25,23 +25,57 @@
 extern "C"
 {
 #endif
-// C ware
+// C ware //////////////////////////////////////////////////////////////////////////
 
-#define LED 4
+#include <stddef.h>
+#include <stdbool.h>
+#include <stdint.h>
+#include <string.h>
+#include <stdlib.h>
+#include <stdarg.h>
+
+#define LED (2) /* from table */
+#define LED_BUILTIN LED
+
+#define PINS_COUNT            (26u)
+#define NUM_DIGITAL_PINS      (20u)
+#define NUM_ANALOG_INPUTS     (6u)
+#define NUM_ANALOG_OUTPUTS    (1u)
+
+#define PIN_SERIAL_RX         (0ul)
+#define PIN_SERIAL_TX         (1ul)
+#define PAD_SERIAL_TX         (UART_TX_PAD_0)
+#define PAD_SERIAL_RX         (SERCOM_RX_PAD_1)
 
 int analogRead(uint8_t pin);
 void analogWrite(uint8_t pin, int val);
 
+#define analogInputToDigitalPin(p)  ((p < 6u) ? (p) + 14u : -1)
+#define digitalPinToPort(P)			    ( &(PORT->Group[g_APinDescription[P].ulPort]) )
+#define digitalPinToBitMask(P)		  ( 1 << g_APinDescription[P].ulPin )
+#define portOutputRegister(port)	  ( &(port->OUT.reg) )
+#define portInputRegister(port)		  ( &(port->IN.reg) )
+#define portModeRegister(port)		  ( &(port->DIR.reg) )
+#define digitalPinHasPWM(P)			    ( g_APinDescription[P].ulPWMChannel != NOT_ON_PWM || g_APinDescription[P].ulTCChannel != NOT_ON_TIMER )
+#define digitalPinToInterrupt(P)	  (g_APinDescription[P].ulExtInt)
+
+
 #ifdef __cplusplus
 }
-//CPP ware
+// CPP ware ////////////////////////////////////////////////////////////////////////
 
 void initVariant();
 
-//#include <HardwareSerial.h>
-//extern HardwareSerial Serial;
-//extern HardwareSerial Serial1;
-//extern HardwareSerial Serial2;
+#include <Sercom.h>
+extern SERCOM sercom0;
+extern SERCOM sercom1;
+extern SERCOM sercom2;
+extern SERCOM sercom3;
+extern SERCOM sercom4; // RESERVED FOR RF
+extern SERCOM sercom5;
+
+#include <Uart.h>
+extern Uart Serial;
 
 #endif //__cplusplus
 
