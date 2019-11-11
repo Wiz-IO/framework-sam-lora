@@ -42,6 +42,11 @@
  */
 
 
+/****************************************************************************
+ *  Mod: Georgi Angelov
+ * -Xlinker --defsym=APP_BASE=0x2000
+ ****************************************************************************/
+OFFSET = DEFINED(APP_BASE) ? APP_BASE : 0x0;
 
 OUTPUT_FORMAT("elf32-littlearm", "elf32-littlearm", "elf32-littlearm")
 OUTPUT_ARCH(arm)
@@ -50,7 +55,7 @@ SEARCH_DIR(.)
 /* Memory Spaces Definitions */
 MEMORY
 {
-  rom      (rx)  : ORIGIN = 0x00000000, LENGTH = 0x00040000
+  rom      (rx)  : ORIGIN = OFFSET,     LENGTH = 0x00040000 - OFFSET 
   ram      (rwx) : ORIGIN = 0x20000000, LENGTH = 0x00008000
   lpram    (rwx) : ORIGIN = 0x30000000, LENGTH = 0x00002000
 }
@@ -165,4 +170,5 @@ SECTIONS
 
     . = ALIGN(4);
     _end = . ;
+
 }
