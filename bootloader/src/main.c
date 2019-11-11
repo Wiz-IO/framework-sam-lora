@@ -48,16 +48,15 @@ void delayUs(uint32_t delay)
 
 __attribute__( ( naked, noreturn ) ) void BootJumpASM( uint32_t SP, uint32_t RH )
 {
-  __asm("MSR MSP, r0");
-  __asm("BX  r1");
+    __asm("MSR MSP, r0");
+    __asm("BX  r1");
 }
 
 int main(void)
 {
     UART_INIT();
     uint32_t cnt = BOOT_DELAY;
-    volatile uint32_t *Stack_Address = (uint32_t *)(APPLICATION);
-    volatile uint32_t *Reset_Address = (uint32_t *)(APPLICATION+4);
+    volatile uint32_t *Address = (uint32_t *)(APPLICATION);
     while (1)
     {
         if (available())
@@ -68,21 +67,11 @@ int main(void)
 
         if (0 == cnt--)
         {
-            if (0xFFFFFFFF != *Stack_Address)
+            if (0xFFFFFFFF != *Address)
             {
-
-                putString("RUN\n");
-                delayUs(BOOT_DELAY);
-
-                /* Rebase the Stack Pointer */
-                __set_MSP((uint32_t)Stack_Address);
-
-                /* Rebase the vector table base address */
-                SCB->VTOR = (APPLICATION & SCB_VTOR_TBLOFF_Msk);
-                //BootJumpASM()
-                //asm("bx %0" ::"r"(*Reset_Address));
+                SCB->VTOR = APPLICATION
+                BootJumpASM( Address[0], Address[1]);
             }
-
             cnt = BOOT_DELAY;
         }
     }
