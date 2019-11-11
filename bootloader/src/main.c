@@ -72,7 +72,7 @@ int main(void)
                 __set_MSP((uint32_t)Stack_Address);
 
                 /* Rebase the vector table base address */
-                SCB->VTOR = ((uint32_t)(Reset_Address) & SCB_VTOR_TBLOFF_Msk);
+                SCB->VTOR = (APPLICATION & SCB_VTOR_TBLOFF_Msk);
 
                 asm("bx %0" ::"r"(*Reset_Address));
             }
