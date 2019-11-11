@@ -39,6 +39,7 @@
 #ifndef _CFG_H_
 #define _CFG_H_
 
+#include <stdint.h>
 #include <samr34.h>
 
 #define BOOT_DELAY         0xFFFFF
