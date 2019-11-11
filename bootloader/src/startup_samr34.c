@@ -177,4 +177,7 @@ void Dummy_Handler(void)
     }
 }
 
-//void _init(void) { }
+extern void *_sbrk(int incr)
+{
+    return (void *)-1;
+}

@@ -41,6 +41,9 @@
 #include <samr34.h>
 #include "cfg.h"
 
+int nvdm_flash_erase(uint32_t addr);
+int nvdm_flash_write(uint32_t addr, uint8_t data[64]);
+
 void delayUs(uint32_t delay);
 
 static void UART_RESET(Sercom *s)
@@ -200,8 +203,10 @@ void cmd_erase(void)
         is_wrong_crc((uint8_t *)&p, sizeof(struct p_erase)) ||
         is_not_align(p.addr, 255))
         return;
-    // DO ERASE
-    send_answer(CONF);
+    if (nvdm_flash_erase(p.addr))
+        send_answer(E_ERASE);
+    else
+        send_answer(CONF);
 }
 
 void cmd_write(void)
@@ -217,12 +222,17 @@ void cmd_write(void)
         is_wrong_crc((uint8_t *)&p, sizeof(struct p_write)) ||
         is_not_align(p.addr, 63))
         return;
-    // DO WRITE
-    if (memcmp((uint8_t *)p.addr, p.buff, 64))
-        send_error(E_VERIFY);
+    if (nvdm_flash_write(p.addr, p.buff))
+    {
+        send_error(E_WRITE);
+    }
     else
-        send_answer(CONF);
-
+    {
+        if (memcmp((uint8_t *)p.addr, p.buff, 64))
+            send_error(E_VERIFY);
+        else
+            send_answer(CONF);
+    }
 }
 
 void cmd_read(void)

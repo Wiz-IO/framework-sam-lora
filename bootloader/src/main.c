@@ -40,15 +40,6 @@
 #include <samr34.h>
 #include "cfg.h"
 
-#define BOOT_DELAY 0xFFFFF
-
-void UART_INIT(void);
-int available(void);
-void putChar(char c);
-uint8_t getChar(void);
-void putString(char *str);
-void boot_task(void);
-
 void delayUs(uint32_t delay)
 {
     for (uint32_t i = 0; i < delay; i++)
@@ -58,8 +49,9 @@ void delayUs(uint32_t delay)
 int main(void)
 {
     UART_INIT();
-    //putString("ATSAM34\n");
     uint32_t cnt = BOOT_DELAY;
+    volatile uint32_t *Stack_Address = (uint32_t *)(APPLICATION);
+    volatile uint32_t *Reset_Address = (uint32_t *)(APPLICATION+4);
     while (1)
     {
         if (available())
@@ -70,9 +62,22 @@ int main(void)
 
         if (0 == cnt--)
         {
+            if (0xFFFFFFFF != *Stack_Address)
+            {
+
+                putString("RUN\n");
+                delayUs(BOOT_DELAY);
+
+                /* Rebase the Stack Pointer */
+                __set_MSP((uint32_t)Stack_Address);
+
+                /* Rebase the vector table base address */
+                SCB->VTOR = ((uint32_t)(Reset_Address) & SCB_VTOR_TBLOFF_Msk);
+
+                asm("bx %0" ::"r"(*Reset_Address));
+            }
+
             cnt = BOOT_DELAY;
-            //check_application();
-            //putChar('*');
         }
     }
 }

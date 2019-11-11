@@ -41,11 +41,15 @@
 
 #include <samr34.h>
 
-#define CLOCK_DEFAULT       48000000ul
+#define BOOT_DELAY         0xFFFFF
 
-#define BOOT_UART           SERCOM0
+#define APPLICATION        0x00002000  /* start address      */
+#define MIN_ADDRESS        0x02000     /* protect bootloader */
+#define MAX_ADDRESS        0x40000     /* from linker script */
 
-#define APPLICATION         0x00002000
+#define CLOCK_DEFAULT      48000000ul
+
+#define BOOT_UART          SERCOM0
 
 #define ATTN        '#' 
 #define CONF        'C'
@@ -65,10 +69,15 @@ typedef enum
     E_LIMIT = 1,
     E_CRC,
     E_ALIGN,
+    E_ERASE,
+    E_WRITE,
     E_VERIFY,
-} e_error;
+} ERRORS_E;
 
-#define MIN_ADDRESS 0x2000
-#define MAX_ADDRESS 256*1024
+void UART_INIT(void);
+int available(void);
+uint8_t getChar(void);
+void putString(char *str);
+void boot_task(void);
 
 #endif
