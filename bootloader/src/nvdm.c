@@ -1,6 +1,3 @@
-#include <stdint.h>
-#include <string.h>
-#include <samr34.h>
 #include "cfg.h"
 
 typedef enum
