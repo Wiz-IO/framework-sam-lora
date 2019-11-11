@@ -46,6 +46,12 @@ void delayUs(uint32_t delay)
         __asm__ __volatile__("");
 }
 
+__attribute__( ( naked, noreturn ) ) void BootJumpASM( uint32_t SP, uint32_t RH )
+{
+  __asm("MSR MSP, r0");
+  __asm("BX  r1");
+}
+
 int main(void)
 {
     UART_INIT();
@@ -73,8 +79,8 @@ int main(void)
 
                 /* Rebase the vector table base address */
                 SCB->VTOR = (APPLICATION & SCB_VTOR_TBLOFF_Msk);
-
-                asm("bx %0" ::"r"(*Reset_Address));
+                //BootJumpASM()
+                //asm("bx %0" ::"r"(*Reset_Address));
             }
 
             cnt = BOOT_DELAY;
