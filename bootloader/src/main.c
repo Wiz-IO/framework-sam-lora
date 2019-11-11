@@ -57,12 +57,11 @@ int main(void)
     volatile uint32_t *Address = (uint32_t *)(APPLICATION);
     while (1)
     {
-        if (available())
+        if (BOOT_UART->USART.INTFLAG.bit.RXC)
         {
-            if (ACK == getChar())
+            if (ACK == BOOT_UART->USART.DATA.reg)
                 boot_task();
         }
-
         if (0 == cnt--)
         {
             if (0xFFFFFFFF != *Address)
