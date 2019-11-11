@@ -36,8 +36,6 @@
   
 */
 
-#include <stdint.h>
-#include <samr34.h>
 #include "cfg.h"
 
 void delayUs(uint32_t delay)
