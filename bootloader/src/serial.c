@@ -36,9 +36,6 @@
   
 */
 
-#include <stdint.h>
-#include <string.h>
-#include <samr34.h>
 #include "cfg.h"
 
 int nvdm_flash_erase(uint32_t addr);
