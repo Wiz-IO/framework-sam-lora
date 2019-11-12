@@ -40,11 +40,11 @@
 
 void delayUs(uint32_t delay)
 {
-    for (uint32_t i = 0; i < delay; i++)
+    while (delay--)
         __asm__ __volatile__("");
 }
 
-__attribute__( ( naked, noreturn ) ) void BootJumpASM( uint32_t SP, uint32_t RH )
+__attribute__((naked, noreturn)) void jump_app(uint32_t SP, uint32_t RH)
 {
     __asm("MSR MSP, r0");
     __asm("BX  r1");
@@ -66,8 +66,10 @@ int main(void)
         {
             if (0xFFFFFFFF != *Address)
             {
-                SCB->VTOR = APPLICATION
-                BootJumpASM( Address[0], Address[1]);
+                BOOT_UART->USART.CTRLA.bit.SWRST = 1;
+                delayUs(0xFFF);
+                SCB->VTOR = APPLICATION & SCB_VTOR_TBLOFF_Msk;
+                jump_app(Address[0], Address[1]);             
             }
             cnt = BOOT_DELAY;
         }

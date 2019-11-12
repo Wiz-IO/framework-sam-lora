@@ -1,3 +1,5 @@
+#include <stdint.h>
+#include <samr34.h>
 #include "cfg.h"
 
 /* Initialize segments */
@@ -24,6 +26,12 @@ __attribute__((section(".vectors")))
 const DeviceVectors exception_table = {
     .pvStack = (void *)(&_estack),
     .pfnReset_Handler = (void *)Reset_Handler,
+
+    // NOT USED HERE
+    .pfnNMI_Handler = (void *)0x12345678,       // MAGIC
+    .pfnHardFault_Handler = (void *)48000000ul, // SystemCoreClock
+
+#if 0    
     .pfnNMI_Handler = (void *)NMI_Handler,
     .pfnHardFault_Handler = (void *)HardFault_Handler,
     .pvReservedM12 = (void *)(0UL), /* Reserved */
@@ -37,7 +45,9 @@ const DeviceVectors exception_table = {
     .pvReservedM4 = (void *)(0UL), /* Reserved */
     .pvReservedM3 = (void *)(0UL), /* Reserved */
     .pfnPendSV_Handler = (void *)PendSV_Handler,
-    .pfnSysTick_Handler = (void *)SysTick_Handler};
+    .pfnSysTick_Handler = (void *)SysTick_Handler,
+#endif
+};
 
 #define GCLK_DFLL48M_REF 0
 
@@ -77,10 +87,10 @@ static void init_clock(void)
     NVMCTRL->CTRLB.bit.RWS = 2;         // wait states
     PM->INTFLAG.reg = PM_INTFLAG_PLRDY; /* Switch to PL2 to be sure configuration of GCLK0 is safe */
     PM->PLCFG.reg = PM_PLCFG_PLSEL_PL2; /* Switch performance level = SYSTEM_PERFORMANCE_LEVEL_2 */
-    ;
     while (!PM->INTFLAG.reg)
     {
-    } /* Waiting performance level ready */
+        /* Waiting performance level ready */
+    }
 
     /* Software reset the GCLK module to ensure it is re-initialized correctly */
     GCLK->CTRLA.reg = GCLK_CTRLA_SWRST;

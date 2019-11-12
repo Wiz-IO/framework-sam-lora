@@ -36,6 +36,9 @@
   
 */
 
+#include <stdint.h>
+#include <string.h>
+#include <samr34.h>
 #include "cfg.h"
 
 int nvdm_flash_erase(uint32_t addr);
@@ -241,7 +244,8 @@ void cmd_read(void)
         uint16_t crc;
     } p = {0};
     getBuffer((uint8_t *)&p, sizeof(struct p_read));
-    if (is_limit(p.addr) ||
+    if (
+        //is_limit(p.addr) ||
         is_wrong_crc((uint8_t *)&p, sizeof(struct p_read)))
         return;
     if (p.size > 1024) // max

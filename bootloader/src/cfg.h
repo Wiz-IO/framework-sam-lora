@@ -79,6 +79,7 @@ typedef enum
 void UART_INIT(void);
 int available(void);
 uint8_t getChar(void);
+void putChar(char);
 void putString(char *str);
 void boot_task(void);
 
