@@ -74,8 +74,7 @@ void init_clock(void)
     // 32kHz * 1500 = 48MHz  CSTEP and FSTEP must be 50% or less
     OSCCTRL->DFLLMUL.reg = OSCCTRL_DFLLMUL_MUL(1465) | OSCCTRL_DFLLMUL_CSTEP(1) | OSCCTRL_DFLLMUL_FSTEP(1);
     while (!(OSCCTRL->STATUS.reg & OSCCTRL_STATUS_DFLLRDY))
-    {
-        /* Wait for synchronization */
+    { /* Wait for synchronization */
     }
 
     OSCCTRL->DFLLCTRL.reg |= OSCCTRL_DFLLCTRL_MODE | OSCCTRL_DFLLCTRL_QLDIS | OSCCTRL_DFLLCTRL_ENABLE;
@@ -100,9 +99,7 @@ void init_systick(void)
     if (SysTick_Config(SystemCoreClock / 1000))
     {
         while (1)
-        {
-            // Capture error
+        { // Capture error
         }
-        NVIC_SetPriority(SysTick_IRQn, (1 << __NVIC_PRIO_BITS) - 2); /* set Priority for Systick Interrupt (2nd lowest) */
     }
 }
