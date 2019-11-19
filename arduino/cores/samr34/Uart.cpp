@@ -16,14 +16,13 @@
   Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
+#include <Arduino.h>
 #include "Uart.h"
-#include "Arduino.h"
+#include "WVariant.h"
 
 #define NO_RTS_PIN 255
 #define NO_CTS_PIN 255
 #define RTS_RX_THRESHOLD 10
-
-extern "C" int pinPeripheral(uint32_t ulPin, EPioType ulPeripheral);
 
 Uart::Uart(SERCOM *_s, uint8_t _pinRX, uint8_t _pinTX, SercomRXPad _padRX, SercomUartTXPad _padTX) : Uart(_s, _pinRX, _pinTX, _padRX, _padTX, NO_RTS_PIN, NO_CTS_PIN)
 {
@@ -47,8 +46,8 @@ void Uart::begin(unsigned long baudrate)
 
 void Uart::begin(unsigned long baudrate, uint16_t config)
 {
-    pinPeripheral(uc_pinRX, g_APinDescription[uc_pinRX].ulPinType);
-    pinPeripheral(uc_pinTX, g_APinDescription[uc_pinTX].ulPinType);
+    pinPeripheral(uc_pinRX, PIO_SERCOM);//g_APinDescription[uc_pinRX].ulPinType);
+    pinPeripheral(uc_pinTX, PIO_SERCOM);//g_APinDescription[uc_pinTX].ulPinType);
 
     if (uc_padTX == UART_TX_RTS_CTS_PAD_0_2_3)
     {
@@ -61,7 +60,7 @@ void Uart::begin(unsigned long baudrate, uint16_t config)
     if (uc_pinRTS != NO_RTS_PIN)
     {
         pinMode(uc_pinRTS, OUTPUT);
-        EPortType rtsPort = g_APinDescription[uc_pinRTS].ulPort;
+        EPortType rtsPort = (EPortType)g_APinDescription[uc_pinRTS].ulPort;
         pul_outsetRTS = &PORT->Group[rtsPort].OUTSET.reg;
         pul_outclrRTS = &PORT->Group[rtsPort].OUTCLR.reg;
         ul_pinMaskRTS = (1ul << g_APinDescription[uc_pinRTS].ulPin);
@@ -72,6 +71,7 @@ void Uart::begin(unsigned long baudrate, uint16_t config)
     sercom->initFrame(extractCharSize(config), LSB_FIRST, extractParity(config), extractNbStopBit(config));
     sercom->initPads(uc_padTX, uc_padRX);
     sercom->enableUART();
+    delay(1);
 }
 
 void Uart::end()
@@ -85,18 +85,73 @@ void Uart::flush()
 {
     while (txBuffer.available())
     {
-        // wait until TX buffer is empty
     }
     sercom->flushUART();
+}
+
+int Uart::available()
+{
+    return rxBuffer.available();
+}
+
+int Uart::peek()
+{
+    return rxBuffer.peek();
+}
+
+int Uart::read()
+{
+    int c = rxBuffer.read_char();
+    if (uc_pinRTS != NO_RTS_PIN)
+    {
+        if (rxBuffer.availableForStore() > RTS_RX_THRESHOLD)
+        {
+            *pul_outclrRTS = ul_pinMaskRTS;
+        }
+    }
+    return c;
+}
+
+size_t Uart::write(const uint8_t data)
+{
+    if (sercom->isDataRegisterEmptyUART() && txBuffer.available() == 0)
+    {
+        sercom->writeDataUART(data);
+    }
+    else
+    {
+        while (txBuffer.isFull())
+        {
+            uint8_t interruptsEnabled = ((__get_PRIMASK() & 0x1) == 0);
+            if (interruptsEnabled)
+            {
+                uint32_t exceptionNumber = (SCB->ICSR & SCB_ICSR_VECTACTIVE_Msk);
+                if (exceptionNumber == 0 || NVIC_GetPriority((IRQn_Type)(exceptionNumber - 16)) > SERCOM_NVIC_PRIORITY)
+                {
+                    continue;
+                }
+            }
+            if (sercom->isDataRegisterEmptyUART())
+            {
+                IrqHandler();
+            }
+        }
+        txBuffer.store_char(data);
+        sercom->enableDataRegisterEmptyInterruptUART();
+    }
+    return 1;
+}
+
+int Uart::availableForWrite()
+{
+    return txBuffer.availableForStore();
 }
 
 void Uart::IrqHandler()
 {
     if (sercom->isFrameErrorUART())
     {
-        // frame error, next byte is invalid so read and discard it
         sercom->readDataUART();
-
         sercom->clearFrameErrorUART();
     }
 
@@ -106,7 +161,6 @@ void Uart::IrqHandler()
 
         if (uc_pinRTS != NO_RTS_PIN)
         {
-            // RX buffer space is below the threshold, de-assert RTS
             if (rxBuffer.availableForStore() < RTS_RX_THRESHOLD)
             {
                 *pul_outsetRTS = ul_pinMaskRTS;
@@ -137,79 +191,6 @@ void Uart::IrqHandler()
     }
 }
 
-int Uart::available()
-{
-    return rxBuffer.available();
-}
-
-int Uart::availableForWrite()
-{
-    return txBuffer.availableForStore();
-}
-
-int Uart::peek()
-{
-    return rxBuffer.peek();
-}
-
-int Uart::read()
-{
-    int c = rxBuffer.read_char();
-
-    if (uc_pinRTS != NO_RTS_PIN)
-    {
-        // if there is enough space in the RX buffer, assert RTS
-        if (rxBuffer.availableForStore() > RTS_RX_THRESHOLD)
-        {
-            *pul_outclrRTS = ul_pinMaskRTS;
-        }
-    }
-
-    return c;
-}
-
-size_t Uart::write(const uint8_t data)
-{
-    if (sercom->isDataRegisterEmptyUART() && txBuffer.available() == 0)
-    {
-        sercom->writeDataUART(data);
-    }
-    else
-    {
-        // spin lock until a spot opens up in the buffer
-        while (txBuffer.isFull())
-        {
-            uint8_t interruptsEnabled = ((__get_PRIMASK() & 0x1) == 0);
-
-            if (interruptsEnabled)
-            {
-                uint32_t exceptionNumber = (SCB->ICSR & SCB_ICSR_VECTACTIVE_Msk);
-
-                if (exceptionNumber == 0 ||
-                    NVIC_GetPriority((IRQn_Type)(exceptionNumber - 16)) > SERCOM_NVIC_PRIORITY)
-                {
-                    // no exception or called from an ISR with lower priority,
-                    // wait for free buffer spot via IRQ
-                    continue;
-                }
-            }
-
-            // interrupts are disabled or called from ISR with higher or equal priority than the SERCOM IRQ
-            // manually call the UART IRQ handler when the data register is empty
-            if (sercom->isDataRegisterEmptyUART())
-            {
-                IrqHandler();
-            }
-        }
-
-        txBuffer.store_char(data);
-
-        sercom->enableDataRegisterEmptyInterruptUART();
-    }
-
-    return 1;
-}
-
 SercomNumberStopBit Uart::extractNbStopBit(uint16_t config)
 {
     switch (config & HARDSER_STOP_BIT_MASK)
@@ -217,7 +198,6 @@ SercomNumberStopBit Uart::extractNbStopBit(uint16_t config)
     case HARDSER_STOP_BIT_1:
     default:
         return SERCOM_STOP_BIT_1;
-
     case HARDSER_STOP_BIT_2:
         return SERCOM_STOP_BITS_2;
     }
@@ -229,13 +209,10 @@ SercomUartCharSize Uart::extractCharSize(uint16_t config)
     {
     case HARDSER_DATA_5:
         return UART_CHAR_SIZE_5_BITS;
-
     case HARDSER_DATA_6:
         return UART_CHAR_SIZE_6_BITS;
-
     case HARDSER_DATA_7:
         return UART_CHAR_SIZE_7_BITS;
-
     case HARDSER_DATA_8:
     default:
         return UART_CHAR_SIZE_8_BITS;
@@ -249,10 +226,8 @@ SercomParityMode Uart::extractParity(uint16_t config)
     case HARDSER_PARITY_NONE:
     default:
         return SERCOM_NO_PARITY;
-
     case HARDSER_PARITY_EVEN:
         return SERCOM_EVEN_PARITY;
-
     case HARDSER_PARITY_ODD:
         return SERCOM_ODD_PARITY;
     }

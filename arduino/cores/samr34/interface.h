@@ -36,40 +36,89 @@ extern "C"
 #include <time.h>
 #include <math.h>
 #include <samr34.h>
-#include <WVariant.h>
-
-/** Frequency of the board main oscillator */
-#define VARIANT_MAINOSC (32768ul)
-
-/** Master clock frequency */
-#define VARIANT_MCK (48000000ul)
 
   extern uint32_t SystemCoreClock;
 
-  unsigned int seconds(void);
-  unsigned int millis(void);
-  unsigned int micros(void);
-  void delay(unsigned int);
-  void delayMicroseconds(unsigned int us);
+#define interrupts() __enable_irq()
+#define noInterrupts() __disable_irq()
 
   long atol(const char *s);
   char *itoa(int value, char *result, int base);
   char *ltoa(long value, char *result, int base);
   char *utoa(unsigned value, char *result, int base);
   char *ultoa(unsigned long value, char *result, int base);
+  double atof(register const char *s);
 
   uint32_t clockCyclesPerMicrosecond(void);
   uint32_t clockCyclesToMicroseconds(uint32_t a);
   uint32_t microsecondsToClockCycles(uint32_t a);
 
-  int analogRead(uint8_t pin);
-  void analogWrite(uint8_t pin, int val);
+  unsigned int seconds(void);
+  unsigned int millis(void);
+  unsigned int micros(void);
+  void delay(unsigned int);
+  static __inline__ void delayMicroseconds(unsigned int) __attribute__((always_inline, unused));
+  static __inline__ void delayMicroseconds(unsigned int usec)
+  {
+    if (usec == 0)
+    {
+      return;
+    }
+    /*
+   *  The following loop:
+   *
+   *    for (; ul; ul--) {
+   *      __asm__ volatile("");
+   *    }
+   *
+   *  produce the following assembly code:
+   *
+   *    loop:
+   *      subs r3, #1        // 1 Core cycle
+   *      bne.n loop         // 1 Core cycle + 1 if branch is taken
+   */
+    // VARIANT_MCK / 1000000 == cycles needed to delay 1uS
+    //                     3 == cycles used in a loop
+    // Divide by 3 before multiplication with usec, so that the maximum usable usec value
+    // with the D51 @ 120MHz is at least what it was when multipling by usec first at 48MHz.
+    uint32_t n = usec * ((48000000u / 1000000) / 3);
+    __asm__ __volatile__(
+        "1:              \n"
+        "   sub %0, #1   \n" // substract 1 from %0 (n)
+        "   bne 1b       \n" // if result is not 0 jump to 1
+        : "+r"(n)            // '%0' is n variable with RW constraints
+        :                    // no input
+        :                    // no clobber
+    );
+    // https://gcc.gnu.org/onlinedocs/gcc/Extended-Asm.html
+    // https://gcc.gnu.org/onlinedocs/gcc/Extended-Asm.html#Volatile
+  }
 
-#ifndef SERIAL_BUFFER_SIZE
-#define SERIAL_BUFFER_SIZE 1024
+#define DEBUG_ENABLE 1
+  void putString(char *str);
+#if DEBUG_ENABLE > 0
+#define DBG_BUF_LEN 512
+  extern char DBG_BUFFER[DBG_BUF_LEN];
+#define DBG(FORMAT, ...)                        \
+  {                                             \
+    memset(DBG_BUFFER, 0, DBG_BUF_LEN);         \
+    sprintf(DBG_BUFFER, FORMAT, ##__VA_ARGS__); \
+    putString(DBG_BUFFER);                      \
+  }
+
+#else
+#define DBG(FORMAT, ...)
 #endif
+
+#undef assert
+#define assert(__e) ((__e) ? (void)0 : abort())
+
+
+uint32_t rnd(void);
+uint32_t convert_byte_array_to_32_bit(uint8_t *data);
 
 #ifdef __cplusplus
 }
 #endif
+
 #endif /* INTERFACE_H_ */

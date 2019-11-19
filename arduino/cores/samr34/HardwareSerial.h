@@ -20,7 +20,6 @@
 #define HardwareSerial_h
 
 #include <inttypes.h>
-
 #include "Stream.h"
 
 #define HARDSER_PARITY_EVEN		(0x1ul)
@@ -33,11 +32,11 @@
 #define HARDSER_STOP_BIT_2	 	(0x30ul)
 #define HARDSER_STOP_BIT_MASK	(0xF0ul)
 
-#define HARDSER_DATA_5	 		(0x100ul)
-#define HARDSER_DATA_6	 		(0x200ul)
-#define HARDSER_DATA_7	 		(0x300ul)
-#define HARDSER_DATA_8	 		(0x400ul)
-#define HARDSER_DATA_MASK		(0xF00ul)
+#define HARDSER_DATA_5	 		  (0x100ul)
+#define HARDSER_DATA_6	 		  (0x200ul)
+#define HARDSER_DATA_7	 		  (0x300ul)
+#define HARDSER_DATA_8	 		  (0x400ul)
+#define HARDSER_DATA_MASK		  (0xF00ul)
 
 #define SERIAL_5N1	(HARDSER_STOP_BIT_1 | HARDSER_PARITY_NONE | HARDSER_DATA_5)
 #define SERIAL_6N1	(HARDSER_STOP_BIT_1 | HARDSER_PARITY_NONE | HARDSER_DATA_6)
@@ -68,16 +67,16 @@ class HardwareSerial : public Stream
 {
   public:
     HardwareSerial() {};
-	  virtual ~HardwareSerial() {};
+    virtual ~HardwareSerial() {};
     virtual void begin(unsigned long){};
     virtual void begin(unsigned long baudrate, uint16_t config){};
     virtual void end(){};
-    virtual int available(void) = 0;
-    virtual int peek(void) = 0;
-    virtual int read(void) = 0;
-    virtual void flush(void) = 0;
+    virtual int available() = 0;
+    virtual int peek() = 0;
+    virtual int read() = 0;
+    virtual void flush() = 0;
     virtual size_t write(uint8_t) = 0;
-    using Print::write; // pull in write(str) and write(buf, size) from Print
+    using Print::write; 
     virtual operator bool() = 0;
 }; 
 

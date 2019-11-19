@@ -1,13 +1,9 @@
-/**
- * \file
+/*
  *
- * \brief gcc starttup file for SAMR34
+ * gcc starttup file for SAMR34
  *
  * Copyright (c) 2017 Microchip Technology Inc.
  *
- * \asf_license_start
- *
- * \page License
  *
  * SPDX-License-Identifier: Apache-2.0
  *
@@ -22,8 +18,6 @@
  * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
- * \asf_license_stop
  *
  */
 
@@ -45,10 +39,8 @@ extern int main(void);
 extern void __libc_init_array(void);
 
 /* Default empty handler */
-void Dummy_Handler(void)
-{
-        while (1) {
-        }
+void Dummy_Handler(void) {
+    while (1) { }
 }
 
 /* Cortex-M0+ core handlers */
@@ -207,12 +199,15 @@ const DeviceVectors exception_table = {
         .pvReserved27           = (void*) (0UL),                  /* 27 Reserved */
 #endif
         .pvReserved28           = (void*) (0UL)                   /* 28 Reserved */
+       
 };
 
-/**
- * \brief This is the code that gets called on processor reset.
- * To initialize the device, and call the main() routine.
- */
+void ___HardFault_Handler(void)
+{
+  __BKPT(13);
+  while (1);
+}
+
 void Reset_Handler(void)
 {
         uint32_t *pSrc, *pDest;
@@ -253,7 +248,7 @@ void _init(void) { /* need for __libc_init_array */}
 
 //////////////////////////////////////////////////////////////////
 //                                                              //
-//      SYSCALLS MUST BE HERE !                                 //
+//      SYSCALLS MUST BE HERE ! to be loaded                    //
 //                                                              //
 //////////////////////////////////////////////////////////////////
 
