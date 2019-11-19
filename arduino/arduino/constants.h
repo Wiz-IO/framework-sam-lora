@@ -25,39 +25,32 @@ extern "C"{
 
 #include <stdint.h>
 
-#define LOW				          (0x0)
-#define HIGH				        (0x1)
+#define LOW                       (0x0)
+#define HIGH                      (0x1)
 
-#define CLOSE               (0xFF)
-#define INPUT               (0)
-#define INPUT_PULLUP        (1<<1)
-#define INPUT_PULLDOWN      (1<<2)
-#define OUTPUT              (1<<3)
-#define OUTPUT_LO           (1<<4)
-#define OUTPUT_HI           (1<<5)
+#define INPUT                     (0x0)
+#define OUTPUT                    (0x1)
+#define INPUT_PULLUP              (0x2)
+#define INPUT_PULLDOWN            (0x3)
 
-#define CHANGE				      (0x2)
-#define FALLING				      (0x3)
-#define RISING				      (0x4)
-
-#define DEFAULT				      (0x1)
-#define EXTERNAL			      (0x0)
+#define DEFAULT                   (0x1)
+#define EXTERNAL                  (0x0)
 
 enum BitOrder {
-	LSBFIRST = 0,
-	MSBFIRST = 1
+    LSBFIRST = 0,
+    MSBFIRST = 1
 };
 
 typedef bool boolean;
 typedef uint8_t byte;
 typedef uint16_t word;
 
-#define PI				            3.1415926535897932384626433832795
-#define HALF_PI				        1.5707963267948966192313216916398
-#define TWO_PI				        6.283185307179586476925286766559
-#define DEG_TO_RAD			      0.017453292519943295769236907684886
-#define RAD_TO_DEG			      57.295779513082320876798154814105
-#define EULER				          2.718281828459045235360287471352
+#define PI                        3.1415926535897932384626433832795
+#define HALF_PI                   1.5707963267948966192313216916398
+#define TWO_PI                    6.283185307179586476925286766559
+#define DEG_TO_RAD                0.017453292519943295769236907684886
+#define RAD_TO_DEG                57.295779513082320876798154814105
+#define EULER                     2.718281828459045235360287471352
 
 
 #ifdef abs
@@ -65,26 +58,26 @@ typedef uint16_t word;
 #endif
 #define abs(x)                    ((x)>0?(x):-(x))
 
-#define min(a,b)			            ((a)<(b)?(a):(b))
-#define max(a,b)			            ((a)>(b)?(a):(b))
+#define min(a,b)                  ((a)<(b)?(a):(b))
+#define max(a,b)                  ((a)>(b)?(a):(b))
 
-#define constrain(amt,low,high)		((amt)<(low)?(low):((amt)>(high)?(high):(amt)))
+#define constrain(amt,low,high)   ((amt)<(low)?(low):((amt)>(high)?(high):(amt)))
 
-//#define round(x)			            ((x)>=0?(long)((x)+0.5):(long)((x)-0.5))
-#define radians(deg)			        ((deg)*DEG_TO_RAD)
-#define degrees(rad)			        ((rad)*RAD_TO_DEG)
+//#define round(x)                ((x)>=0?(long)((x)+0.5):(long)((x)-0.5))
+#define radians(deg)              ((deg)*DEG_TO_RAD)
+#define degrees(rad)              ((rad)*RAD_TO_DEG)
 #define sq(x)                     ((x)*(x))
 
 
-#define lowByte(w)			          ((uint8_t) ((w) & 0xff))
-#define highByte(w)			          ((uint8_t) ((w) >> 8))
+#define lowByte(w)                      ((uint8_t) ((w) & 0xff))
+#define highByte(w)                     ((uint8_t) ((w) >> 8))
 
-#define bit(b)				            (1UL << (b))
+#define bit(b)                          (1UL << (b))
 
-#define bitRead(value, bit)		    (((value) >> (bit)) & 0x01)
-#define bitSet(value, bit)		    ((value) |= (1UL << (bit)))
-#define bitClear(value, bit)		  ((value) &= ~(1UL << (bit)))
-#define bitWrite(value, bit, bitvalue)	(bitvalue ? bitSet(value, bit) : bitClear(value, bit))
+#define bitRead(value, bit)             (((value) >> (bit)) & 0x01)
+#define bitSet(value, bit)              ((value) |= (1UL << (bit)))
+#define bitClear(value, bit)            ((value) &= ~(1UL << (bit)))
+#define bitWrite(value, bit, bitvalue)  (bitvalue ? bitSet(value, bit) : bitClear(value, bit))
 
 #ifndef _NOP
 #define _NOP() do { __asm__ volatile ("nop"); } while (0)

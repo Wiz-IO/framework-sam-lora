@@ -33,16 +33,16 @@ extern "C"
 #include "pgmspace.h"
 #include "binary.h"
 #include "constants.h"
+#include "WInterrupts.h"
 
   unsigned int seconds(void);
   unsigned int millis(void);
   unsigned int micros(void);
   void delay(unsigned int);
-  void delayMicroseconds(unsigned int us);
 
-  void pinMode(uint8_t, uint8_t);
-  void digitalWrite(uint8_t, uint8_t);
-  int digitalRead(uint8_t);
+  void pinMode(uint32_t ulPin, uint32_t ulMode);
+  void digitalWrite(uint32_t ulPin, uint32_t ulVal);
+  int digitalRead(uint32_t ulPin);
 
   void shiftOut(uint8_t dataPin, uint8_t clockPin, uint8_t bitOrder, uint8_t val);
   uint8_t shiftIn(uint8_t dataPin, uint8_t clockPin, uint8_t bitOrder);
@@ -51,10 +51,9 @@ extern "C"
   unsigned long pulseInLong(uint8_t pin, uint8_t state, unsigned long timeout) __attribute__((weak));
 
   void yield(void) __attribute__((weak));
-  void interrupts(void) __attribute__((weak));
-  void noInterrupts(void) __attribute__((weak));
-  void attachInterrupt(uint8_t, void (*)(void), int mode) __attribute__((weak));
-  void detachInterrupt(uint8_t) __attribute__((weak));
+
+  void attachInterrupt(uint32_t pin, void (*callback)(void), uint32_t mode);
+  void detachInterrupt(uint32_t pin);
 
 #ifdef __cplusplus
 } // extern "C"
