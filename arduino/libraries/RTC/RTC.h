@@ -29,34 +29,28 @@
 class RTCClass
 {
 public:
-    RTCClass(int auto_begin)
-    {
-        if (auto_begin)
-            begin();
-    }
+    RTCClass() {}
 
     void begin()
     {
         /* Turn on the digital interface clock */
-        //system_apb_clock_set_mask(SYSTEM_CLOCK_APB_APBA, MCLK_APBAMASK_RTC);
-        MCLK->APBAMASK.reg |= MCLK_APBAMASK_RTC;
+        MCLK->APBAMASK.reg |= MCLK_APBAMASK_RTC; // system_apb_clock_set_mask(0, 0x100);
         /* Select RTC clock */
-        OSC32KCTRL->RTCCTRL.reg = OSC32KCTRL_RTCCTRL_RTCSEL_XOSC32K_Val;
-
+        OSC32KCTRL->RTCCTRL.reg = OSC32KCTRL_RTCCTRL_RTCSEL_XOSC32K_Val; //OSC32KCTRL_RTCCTRL_RTCSEL_XOSC1K_Val
+        /* Reset module to hardware defaults. */
         reset();
-        enable();
-        init();
-    }
 
-    void init(uint32_t prescaler = RTC_MODE0_CTRLA_PRESCALER_OFF_Val)
-    {
         /* Set 32-bit mode and clear on match if applicable. */
-        RTC->MODE0.CTRLA.reg |= RTC_MODE0_CTRLA_MODE(0) | (1 << RTC_MODE0_CTRLA_COUNTSYNC_Pos) | 0x1234; // prescaler ?
-        wait_ready();
+        RTC->MODE0.CTRLA.reg |= RTC_MODE0_CTRLA_MODE(0) | /* COUNT32 */
+                                //RTC_MODE0_CTRLA_MATCHCLR |
+                                RTC_MODE0_CTRLA_COUNTSYNC |
+                                RTC_MODE0_CTRLA_PRESCALER_OFF_Val; //RTC_MODE0_CTRLA_PRESCALER_DIV1024_Val
+        enable();
     }
 
     void disable()
     {
+        wait_ready();
         /* Disbale interrupt */
         RTC->MODE0.INTENCLR.reg = RTC_MODE0_INTENCLR_MASK;
         /* Clear interrupt flag */
@@ -69,15 +63,18 @@ public:
     void enable()
     {
         /* Enable RTC module. */
+        wait_ready();
         RTC->MODE0.CTRLA.reg |= RTC_MODE0_CTRLA_ENABLE;
         wait_ready();
+        Serial.printf("CTRLA:  %08X\n", RTC->MODE0.CTRLA.reg);
     }
 
     void reset()
     {
         disable();
-        RTC->MODE0.CTRLA.reg |= RTC_MODE0_CTRLA_SWRST;
         wait_ready();
+        RTC->MODE0.CTRLA.bit.SWRST = 1;
+        wait_ready();        
     }
 
     void set(uint32_t value)
