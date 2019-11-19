@@ -21,10 +21,15 @@
 #ifndef __VARIANT_H__
 #define __VARIANT_H__
 
+#define MATTAIRTECH_ARDUINO_SAMD_VARIANT_COMPLIANCE 10608
+#define VARIANT_MCK (48000000ul)
+#define NVM_SW_CALIB_DFLL48M_FINE_VAL (512)
+
 #ifdef __cplusplus
 extern "C"
 {
 #endif
+
 // C ware //////////////////////////////////////////////////////////////////////////
 
 #include <stddef.h>
@@ -34,21 +39,22 @@ extern "C"
 #include <stdlib.h>
 #include <stdarg.h>
 
-#define LED (2) /* from table */
-#define LED_BUILTIN LED
+extern uint32_t SystemCoreClock;
 
-#define PINS_COUNT            (26u)
-#define NUM_DIGITAL_PINS      (20u)
-#define NUM_ANALOG_INPUTS     (6u)
-#define NUM_ANALOG_OUTPUTS    (1u)
+#define NUM_PIN_DESCRIPTION_ENTRIES (20u) /* re-edit */
 
-#define PIN_SERIAL_RX         (0ul)
-#define PIN_SERIAL_TX         (1ul)
-#define PAD_SERIAL_TX         (UART_TX_PAD_0)
-#define PAD_SERIAL_RX         (SERCOM_RX_PAD_1)
+#define LED                   (2) /* from table */
+#define LED_BUILTIN           LED
+#define LED_Y                 LED
+#define LED_G                 (3) /* from table */
+#define BUTTON                (4) /* from table */
 
-int analogRead(uint8_t pin);
-void analogWrite(uint8_t pin, int val);
+#define PINS_COUNT            (20u) /* re-edit */
+#define NUM_DIGITAL_PINS      (20u) /* re-edit */
+#define NUM_ANALOG_INPUTS     (6u)  /* re-edit */
+#define NUM_ANALOG_OUTPUTS    (1u)  /* re-edit */
+
+// other...
 
 #define analogInputToDigitalPin(p)  ((p < 6u) ? (p) + 14u : -1)
 #define digitalPinToPort(P)			    ( &(PORT->Group[g_APinDescription[P].ulPort]) )
@@ -57,16 +63,19 @@ void analogWrite(uint8_t pin, int val);
 #define portInputRegister(port)		  ( &(port->IN.reg) )
 #define portModeRegister(port)		  ( &(port->DIR.reg) )
 #define digitalPinHasPWM(P)			    ( g_APinDescription[P].ulPWMChannel != NOT_ON_PWM || g_APinDescription[P].ulTCChannel != NOT_ON_TIMER )
-#define digitalPinToInterrupt(P)	  (g_APinDescription[P].ulExtInt)
+#define digitalPinToInterrupt(P)	  ( P )
 
+int analogRead(uint8_t pin);
+void analogWrite(uint8_t pin, int val);
 
 #ifdef __cplusplus
 }
+
 // CPP ware ////////////////////////////////////////////////////////////////////////
 
 void initVariant();
 
-#include <Sercom.h>
+#include <SERCOM.h>
 extern SERCOM sercom0;
 extern SERCOM sercom1;
 extern SERCOM sercom2;
@@ -78,5 +87,4 @@ extern SERCOM sercom5;
 extern Uart Serial;
 
 #endif //__cplusplus
-
 #endif /* __VARIANT_H__ */

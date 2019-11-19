@@ -19,64 +19,60 @@
  */
 
 #include <Arduino.h>
+#include "WVariant.h"
 
-void initVariant() {}
+#define NO_OTHER NOT_ON_TIMER, No_ADC_Channel, EXTERNAL_INT_NONE, GCLK_CCL_NONE
 
-const PinDescription g_APinDescription[]=
-{
-  // EDBG/UART
-  { PORTA,  4, PIO_SERCOM_ALT, (PIN_ATTR_DIGITAL), No_ADC_Channel, NOT_ON_PWM, NOT_ON_TIMER, EXTERNAL_INT_4 }, // TX: SERCOM0, PAD0
-  { PORTA,  5, PIO_SERCOM_ALT, (PIN_ATTR_DIGITAL), No_ADC_Channel, NOT_ON_PWM, NOT_ON_TIMER, EXTERNAL_INT_5 }, // RX: SERCOM0, PAD1
+const PinDescription g_APinDescription[] = {
+  /******* EDBG/UART */
+  /* 00 */ {PORTA, 4, PIO_SERCOM, (PER_ATTR_SERCOM_ALT), (PIN_ATTR_SERCOM), NO_OTHER}, // TX
+  /* 01 */ {PORTA, 5, PIO_SERCOM, (PER_ATTR_SERCOM_ALT), (PIN_ATTR_SERCOM), NO_OTHER}, // RX
 
-  //LEDS
-  { PORTA, 19, PIO_OUTPUT, PIN_ATTR_DIGITAL, No_ADC_Channel, NOT_ON_PWM, NOT_ON_TIMER, EXTERNAL_INT_3 }, 
-  { PORTA, 18, PIO_OUTPUT, PIN_ATTR_DIGITAL, No_ADC_Channel, NOT_ON_PWM, NOT_ON_TIMER, EXTERNAL_INT_2 }, 
+  /******* LEDS */
+  /* 02 */ {PORTA, 19, PIO_OUTPUT, (PER_ATTR_DRIVE_STRONG), (PIN_ATTR_DIGITAL), NO_OTHER}, // Y
+  /* 03 */ {PORTA, 18, PIO_OUTPUT, (PER_ATTR_DRIVE_STRONG), (PIN_ATTR_DIGITAL), NO_OTHER}, // G
 
+  /******* BUTTON */
+  /* 04 */ {PORTA, 28, PIO_MULTI, (PER_ATTR_NONE), (PIN_ATTR_DIGITAL | PIN_ATTR_EXTINT), NOT_ON_TIMER, No_ADC_Channel, EXTERNAL_INT_8, GCLK_CCL_NONE},
 
-/************************************************************************/
-/* NOT READY YET                                                */
-/************************************************************************/ 
-  // SPI	  
-  { PORTA, 19, PIO_SERCOM, PIN_ATTR_NONE, No_ADC_Channel, NOT_ON_PWM, NOT_ON_TIMER, EXTERNAL_INT_NONE }, // MISO: SERCOM1/PAD[3]
-  { PORTA, 16, PIO_SERCOM, PIN_ATTR_NONE, No_ADC_Channel, NOT_ON_PWM, NOT_ON_TIMER, EXTERNAL_INT_NONE }, // MOSI: SERCOM1/PAD[0]
-  { PORTA, 18, PIO_SERCOM, PIN_ATTR_NONE, No_ADC_Channel, NOT_ON_PWM, NOT_ON_TIMER, EXTERNAL_INT_NONE }, // SS: SERCOM1/PAD[2]
-  { PORTA, 17, PIO_SERCOM, PIN_ATTR_NONE, No_ADC_Channel, NOT_ON_PWM, NOT_ON_TIMER, EXTERNAL_INT_NONE }, // SCK: SERCOM1/PAD[1]	  
-	  
-  // I2C	  
-  { PORTA, 22, PIO_SERCOM, PIN_ATTR_NONE, No_ADC_Channel, NOT_ON_PWM, NOT_ON_TIMER, EXTERNAL_INT_NONE }, // SDA: SERCOM3/PAD[0]
-  { PORTA, 23, PIO_SERCOM, PIN_ATTR_NONE, No_ADC_Channel, NOT_ON_PWM, NOT_ON_TIMER, EXTERNAL_INT_NONE }, // SCL: SERCOM3/PAD[1]  
-	  
-  // USB
-  { PORTA, 28, PIO_COM, PIN_ATTR_NONE, No_ADC_Channel, NOT_ON_PWM, NOT_ON_TIMER, EXTERNAL_INT_NONE }, // USB Host enable
-  { PORTA, 24, PIO_COM, PIN_ATTR_NONE, No_ADC_Channel, NOT_ON_PWM, NOT_ON_TIMER, EXTERNAL_INT_NONE }, // USB/DM
-  { PORTA, 25, PIO_COM, PIN_ATTR_NONE, No_ADC_Channel, NOT_ON_PWM, NOT_ON_TIMER, EXTERNAL_INT_NONE }, // USB/DP	  
-	  
-  //ANALOG
-  { PORTA,  2, PIO_ANALOG, PIN_ATTR_ANALOG, ADC_Channel0, NOT_ON_PWM, NOT_ON_TIMER, EXTERNAL_INT_2 }, // ADC/AIN[0] <--- not ready	  
-	
-	 
-/************************************************************************/
-/* RF INTERNAL PINS                                                     */
-/************************************************************************/	  
-  { PORTA, 19, PIO_SERCOM, PIN_ATTR_NONE, No_ADC_Channel, NOT_ON_PWM, NOT_ON_TIMER, EXTERNAL_INT_NONE }, // MISO: SERCOM1/PAD[3]
-  { PORTA, 16, PIO_SERCOM, PIN_ATTR_NONE, No_ADC_Channel, NOT_ON_PWM, NOT_ON_TIMER, EXTERNAL_INT_NONE }, // MOSI: SERCOM1/PAD[0]
-  { PORTA, 18, PIO_SERCOM, PIN_ATTR_NONE, No_ADC_Channel, NOT_ON_PWM, NOT_ON_TIMER, EXTERNAL_INT_NONE }, // SS: SERCOM1/PAD[2]
-  { PORTA, 17, PIO_SERCOM, PIN_ATTR_NONE, No_ADC_Channel, NOT_ON_PWM, NOT_ON_TIMER, EXTERNAL_INT_NONE }, // SCK: SERCOM1/PAD[1]	  
+   /******* OTHER */
 };
 
-const void* g_apTCInstances[TCC_INST_NUM + TC_INST_NUM] = { TCC0, TCC1, TCC2, TC3, TC4 } ;
+const void *g_apTCInstances[TCC_INST_NUM + TC_INST_NUM] = {TCC0, TCC1, TCC2, TC3, TC4};
 
 // Multi-serial objects instantiation
-SERCOM sercom0( SERCOM0 ); // Serial
-SERCOM sercom1( SERCOM1 );
-SERCOM sercom2( SERCOM2 );
-SERCOM sercom3( SERCOM3 );
-SERCOM sercom4( SERCOM4 ); // RESERVED FOR RF
-SERCOM sercom5( SERCOM5 );
+SERCOM sercom0(SERCOM0); // Serial
+SERCOM sercom1(SERCOM1);
+SERCOM sercom2(SERCOM2);
+SERCOM sercom3(SERCOM3);
+SERCOM sercom4(SERCOM4); // RESERVED FOR RF
+SERCOM sercom5(SERCOM5);
 
-Uart Serial( &sercom0, 1/*RX_PIN*/, 0/*TX_PIN*/, SERCOM_RX_PAD_1, UART_TX_PAD_0 );
-extern "C" void SERCOM0_Handler(void) 
+Uart Serial(&sercom0, 1 /*RX_PIN*/, 0 /*TX_PIN*/, SERCOM_RX_PAD_1, UART_TX_PAD_0);
+extern "C" void SERCOM0_Handler(void)
 {
-	Serial.IrqHandler();
+  Serial.IrqHandler();
 }
 
+void initVariant()
+{
+  // Clock SERCOM for Serial, TC/TCC for Pulse and Analog, and ADC/DAC for Analog
+  uint32_t regAPBCMASK = MCLK->APBCMASK.reg;
+
+  regAPBCMASK |= MCLK_APBCMASK_SERCOM0 | MCLK_APBCMASK_SERCOM1 | MCLK_APBCMASK_SERCOM2 | MCLK_APBCMASK_SERCOM3 | MCLK_APBCMASK_SERCOM4;
+
+  MCLK->APBDMASK.reg |= MCLK_APBDMASK_SERCOM5 | MCLK_APBDMASK_TC4; // On the SAML, SERCOM5 and TC4 are on the low power bridge
+  regAPBCMASK |= MCLK_APBCMASK_TCC0 | MCLK_APBCMASK_TCC1 | MCLK_APBCMASK_TCC2 | MCLK_APBCMASK_TC0 | MCLK_APBCMASK_TC1 | MCLK_APBCMASK_TC2;
+
+  regAPBCMASK |= MCLK_APBCMASK_DAC;
+  MCLK->APBDMASK.reg |= MCLK_APBDMASK_ADC; // On the SAML, ADC is on the low power bridge
+
+  MCLK->APBCMASK.reg |= regAPBCMASK;
+
+  // Setup all pins (digital and analog) in STARTUP mode (enable INEN and set default pull direction to pullup (pullup will not be enabled))
+  //for (uint32_t ul = 0; ul < NUM_DIGITAL_PINS; ul++) pinMode(ul, PIO_STARTUP);
+
+  //initADC();                           // Initialize Analog Controller
+  //analogReference(VARIANT_AR_DEFAULT); // Use default reference from variant.h
+  //initDAC();                           // Initialize DAC
+}
