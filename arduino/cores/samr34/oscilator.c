@@ -1,7 +1,29 @@
 #include <stdint.h>
 #include <samr34.h>
 
-uint32_t SystemCoreClock = 48000000ul; // MUST BE  // default RC = 4000000
+/*
+     We need XOSC32K to 48MHz
+        and RTC counter 1 seconds
+*/
+
+/*
+  SAMR3 - oscilator
+    Created on: 01.01.2020
+    Author: Georgi Angelov
+  This library is free software; you can redistribute it and/or
+  modify it under the terms of the GNU Lesser General Public
+  License as published by the Free Software Foundation; either
+  version 2.1 of the License, or (at your option) any later version.
+  This library is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+  Lesser General Public License for more details.
+  You should have received a copy of the GNU Lesser General Public
+  License along with this library; if not, write to the Free Software
+  Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA   
+ */
+
+uint32_t SystemCoreClock = 48000000ul; // must be set
 
 #define GCLK_DFLL48M_REF 0
 
