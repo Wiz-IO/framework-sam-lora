@@ -1,5 +1,3 @@
-// NOT TESTED
-
 /*
   SAMR3 - RTCClass
     Created on: 01.01.2020
@@ -28,6 +26,14 @@
 
 class RTCClass
 {
+private:
+    void wait_busy()
+    {
+        while (RTC->MODE0.SYNCBUSY.reg)
+        {
+        }
+    }
+
 public:
     RTCClass() {}
 
@@ -35,62 +41,68 @@ public:
     {
         /* Turn on the digital interface clock */
         MCLK->APBAMASK.reg |= MCLK_APBAMASK_RTC; // system_apb_clock_set_mask(0, 0x100);
+
         /* Select RTC clock */
-        OSC32KCTRL->RTCCTRL.reg = OSC32KCTRL_RTCCTRL_RTCSEL_XOSC32K_Val; //OSC32KCTRL_RTCCTRL_RTCSEL_XOSC1K_Val
+        OSC32KCTRL->RTCCTRL.reg = OSC32KCTRL_RTCCTRL_RTCSEL_XOSC1K_Val; // 1.024kHz from 32KHz external oscillator
+
         /* Reset module to hardware defaults. */
         reset();
 
         /* Set 32-bit mode and clear on match if applicable. */
-        RTC->MODE0.CTRLA.reg |= RTC_MODE0_CTRLA_MODE(0) | /* COUNT32 */
+        RTC->MODE0.CTRLA.reg |= RTC_MODE0_CTRLA_MODE(0) |
                                 //RTC_MODE0_CTRLA_MATCHCLR |
                                 RTC_MODE0_CTRLA_COUNTSYNC |
-                                RTC_MODE0_CTRLA_PRESCALER_OFF_Val; //RTC_MODE0_CTRLA_PRESCALER_DIV1024_Val
+                                RTC_MODE0_CTRLA_PRESCALER_DIV1024; // one second
         enable();
+    }
+
+    void enable()
+    {
+        /* Enable RTC module. */
+        wait_busy();
+        RTC->MODE0.CTRLA.reg |= RTC_MODE0_CTRLA_ENABLE;
+        wait_busy();
     }
 
     void disable()
     {
-        wait_ready();
+        wait_busy();
         /* Disbale interrupt */
         RTC->MODE0.INTENCLR.reg = RTC_MODE0_INTENCLR_MASK;
         /* Clear interrupt flag */
         RTC->MODE0.INTFLAG.reg = RTC_MODE0_INTFLAG_MASK;
         /* Disable RTC module. */
         RTC->MODE0.CTRLA.reg &= ~RTC_MODE0_CTRLA_ENABLE;
-        wait_ready();
-    }
-
-    void enable()
-    {
-        /* Enable RTC module. */
-        wait_ready();
-        RTC->MODE0.CTRLA.reg |= RTC_MODE0_CTRLA_ENABLE;
-        wait_ready();
-        Serial.printf("CTRLA:  %08X\n", RTC->MODE0.CTRLA.reg);
+        wait_busy();
     }
 
     void reset()
     {
         disable();
-        wait_ready();
-        RTC->MODE0.CTRLA.bit.SWRST = 1;
-        wait_ready();        
+        wait_busy();
+        RTC->MODE0.CTRLA.reg |= RTC_MODE0_CTRLA_SWRST;
+        wait_busy();
     }
 
     void set(uint32_t value)
     {
         RTC->MODE0.COUNT.reg = value;
-        wait_ready();
+        wait_busy();
     }
 
-    inline uint32_t get() { return RTC->MODE0.COUNT.reg; }
+    inline uint32_t get()
+    {
+        uint32_t value = RTC->MODE0.COUNT.reg;
+        wait_busy();
+        return value;
+    }
 
     void set_compare(uint32_t index, uint32_t value)
     {
         if (index > RTC_COMP32_NUM)
             abort();
         RTC->MODE0.COMP[index].reg = value;
-        wait_ready();
+        wait_busy();
     }
 
     uint32_t get_compare(uint32_t index)
@@ -102,14 +114,6 @@ public:
 
     //start(uint32_t sleepTicks, void (*cb)(void)){}
     //stop(){}
-
-private:
-    void wait_ready()
-    {
-        while (RTC->MODE0.SYNCBUSY.reg)
-        {
-        }
-    }
 };
 
 extern RTCClass rtc;

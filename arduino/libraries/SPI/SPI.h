@@ -21,8 +21,8 @@
 #define _SPI_H_INCLUDED
 
 #include <Arduino.h>
-#include <variant.h>
 #include <WVariant.h>
+#include <samr3.h>
 
 // SPI_HAS_TRANSACTION means SPI has
 //   - beginTransaction()
@@ -39,13 +39,13 @@
 #define SPI_MODE2 0x03
 #define SPI_MODE3 0x01
 
-#define F_CPU 48000000ul
-#define SPI_MAX_FREQUENCY 12000000ul
+#define SPI_MAX_FREQUENCY 12000000ul /* Serial clock speed up to 12MHz */
 
-#define SPI_MIN_CLOCK_DIVIDER (uint8_t)(1 + ((F_CPU - 1) / SPI_MAX_FREQUENCY))
+#define SPI_MIN_CLOCK_DIVIDER (uint8_t)(1 + ((48000000ul - 1) / SPI_MAX_FREQUENCY))
 
 class SPISettings
 {
+  
 public:
   SPISettings(uint32_t clock, BitOrder bitOrder, uint8_t dataMode)
   {
@@ -70,12 +70,7 @@ private:
 
   void init_AlwaysInline(uint32_t clock, BitOrder bitOrder, uint8_t dataMode) __attribute__((__always_inline__))
   {
-// The SAMD51 SERCOM runs at 96MHz when the cpu runs at 120MHz
-#if F_CPU == 120000000
-    this->clockFreq = (clock >= (F_CPU / SPI_MIN_CLOCK_DIVIDER) ? 96000000ul / SPI_MIN_CLOCK_DIVIDER : clock);
-#else
-    this->clockFreq = (clock >= (F_CPU / SPI_MIN_CLOCK_DIVIDER) ? F_CPU / SPI_MIN_CLOCK_DIVIDER : clock);
-#endif
+    this->clockFreq = (clock >= (SystemCoreClock / SPI_MIN_CLOCK_DIVIDER) ? SystemCoreClock / SPI_MIN_CLOCK_DIVIDER : clock);
 
     this->bitOrder = (bitOrder == MSBFIRST ? MSB_FIRST : LSB_FIRST);
 
@@ -132,7 +127,7 @@ public:
   void setDataMode(uint8_t uc_mode);
   void setClockDivider(uint8_t uc_div);
 
-private:
+protected:
   void init();
   void config(SPISettings settings);
 
@@ -150,33 +145,6 @@ private:
   uint32_t interruptMask;
 };
 
-#if SPI_INTERFACES_COUNT > 0
-extern SPIClass SPI;
-#endif
-#if SPI_INTERFACES_COUNT > 1
-extern SPIClass SPI1;
-#endif
-#if SPI_INTERFACES_COUNT > 2
-extern SPIClass SPI2;
-#endif
-#if SPI_INTERFACES_COUNT > 3
-extern SPIClass SPI3;
-#endif
-#if SPI_INTERFACES_COUNT > 4
-extern SPIClass SPI4;
-#endif
-#if SPI_INTERFACES_COUNT > 5
-extern SPIClass SPI5;
-#endif
-#if SPI_INTERFACES_COUNT > 6
-extern SPIClass SPI6;
-#endif
-#if SPI_INTERFACES_COUNT > 7
-extern SPIClass SPI7;
-#endif
-
-// For compatibility with sketches designed for AVR @ 16 MHz
-// New programs should use SPI.beginTransaction to set the SPI clock
 #if F_CPU == 48000000
 #define SPI_CLOCK_DIV2 6
 #define SPI_CLOCK_DIV4 12
@@ -196,6 +164,9 @@ extern SPIClass SPI7;
 #define SPI_CLOCK_DIV128 768
 #endif
 
-extern SPIClass SPI_RF;
+extern SPIClass SPI; 
+extern SPIClass SPI1;
+extern SPIClass SPI2;
+extern SPIClass SPI3;
 
 #endif

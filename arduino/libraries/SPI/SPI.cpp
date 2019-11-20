@@ -19,9 +19,7 @@
 
 #include "SPI.h"
 #include <Arduino.h>
-#include <variant.h>
-
-//#include <assert.h>
+#include <wiring_private.h>
 
 #define SPI_IMODE_NONE 0
 #define SPI_IMODE_EXTINT 1
@@ -32,16 +30,14 @@ const SPISettings DEFAULT_SPI_SETTINGS = SPISettings();
 SPIClass::SPIClass(SERCOM *p_sercom, uint8_t uc_pinMISO, uint8_t uc_pinSCK, uint8_t uc_pinMOSI, SercomSpiTXPad PadTx, SercomRXPad PadRx)
 {
   initialized = false;
-
-  //assert(p_sercom != NULL);
-
+  while (p_sercom == NULL) // assert
+  {
+  }
   _p_sercom = p_sercom;
-
   // pins
   _uc_pinMiso = uc_pinMISO;
   _uc_pinSCK = uc_pinSCK;
   _uc_pinMosi = uc_pinMOSI;
-
   // SERCOM pads
   _padTx = PadTx;
   _padRx = PadRx;
@@ -50,12 +46,10 @@ SPIClass::SPIClass(SERCOM *p_sercom, uint8_t uc_pinMISO, uint8_t uc_pinSCK, uint
 void SPIClass::begin()
 {
   init();
-
-  // PIO init
-  pinPeripheral(_uc_pinMiso, PIO_SERCOM);
-  pinPeripheral(_uc_pinSCK, PIO_SERCOM);
-  pinPeripheral(_uc_pinMosi, PIO_SERCOM);
-
+  uint32_t peripheral = (_p_sercom == &sercom4) ? PIO_SERCOM_RF : PIO_SERCOM;
+  pinPeripheral(_uc_pinMiso, peripheral);
+  pinPeripheral(_uc_pinMosi, peripheral);
+  pinPeripheral(_uc_pinSCK, peripheral);
   config(DEFAULT_SPI_SETTINGS);
 }
 
@@ -72,10 +66,8 @@ void SPIClass::init()
 void SPIClass::config(SPISettings settings)
 {
   _p_sercom->disableSPI();
-
   _p_sercom->initSPI(_padTx, _padRx, SPI_CHAR_SIZE_8_BITS, settings.bitOrder);
   _p_sercom->initSPIClock(settings.dataMode, settings.clockFreq);
-
   _p_sercom->enableSPI();
 }
 
@@ -99,10 +91,8 @@ void SPIClass::usingInterrupt(int interruptNumber)
 {
   if ((interruptNumber == NOT_AN_INTERRUPT) || (interruptNumber == EXTERNAL_INT_NMI))
     return;
-
   uint8_t irestore = interruptsStatus();
   noInterrupts();
-
   if (interruptNumber >= EXTERNAL_NUM_INTERRUPTS)
     interruptMode = SPI_IMODE_GLOBAL;
   else
@@ -110,7 +100,6 @@ void SPIClass::usingInterrupt(int interruptNumber)
     interruptMode |= SPI_IMODE_EXTINT;
     interruptMask |= (1 << interruptNumber);
   }
-
   if (irestore)
     interrupts();
 }
@@ -119,18 +108,13 @@ void SPIClass::notUsingInterrupt(int interruptNumber)
 {
   if ((interruptNumber == NOT_AN_INTERRUPT) || (interruptNumber == EXTERNAL_INT_NMI))
     return;
-
   if (interruptMode & SPI_IMODE_GLOBAL)
     return; // can't go back, as there is no reference count
-
   uint8_t irestore = interruptsStatus();
   noInterrupts();
-
   interruptMask &= ~(1 << interruptNumber);
-
   if (interruptMask == 0)
     interruptMode = SPI_IMODE_NONE;
-
   if (irestore)
     interrupts();
 }
@@ -147,7 +131,6 @@ void SPIClass::beginTransaction(SPISettings settings)
     else if (interruptMode & SPI_IMODE_EXTINT)
       EIC->INTENCLR.reg = EIC_INTENCLR_EXTINT(interruptMask);
   }
-
   config(settings);
 }
 
@@ -184,19 +167,15 @@ void SPIClass::setDataMode(uint8_t mode)
   case SPI_MODE0:
     _p_sercom->setClockModeSPI(SERCOM_SPI_MODE_0);
     break;
-
   case SPI_MODE1:
     _p_sercom->setClockModeSPI(SERCOM_SPI_MODE_1);
     break;
-
   case SPI_MODE2:
     _p_sercom->setClockModeSPI(SERCOM_SPI_MODE_2);
     break;
-
   case SPI_MODE3:
     _p_sercom->setClockModeSPI(SERCOM_SPI_MODE_3);
     break;
-
   default:
     break;
   }
@@ -229,9 +208,7 @@ uint16_t SPIClass::transfer16(uint16_t data)
       uint8_t msb;
     };
   } t;
-
   t.val = data;
-
   if (_p_sercom->getDataOrderSPI() == LSB_FIRST)
   {
     t.lsb = transfer(t.lsb);
@@ -242,7 +219,6 @@ uint16_t SPIClass::transfer16(uint16_t data)
     t.msb = transfer(t.msb);
     t.lsb = transfer(t.lsb);
   }
-
   return t.val;
 }
 
@@ -266,43 +242,6 @@ void SPIClass::detachInterrupt()
   // Should be disableInterrupt()
 }
 
-#if SPI_INTERFACES_COUNT > 0
-/* In case new variant doesn't define these macros,
-   * we put here the ones for Arduino Zero.
-   *
-   * These values should be different on some variants!
-   *
-   * The SPI PAD values can be found in cores/arduino/SERCOM.h:
-   *   - SercomSpiTXPad
-   *   - SercomRXPad
-   */
-#ifndef PERIPH_SPI
-#define PERIPH_SPI sercom4
-#define PAD_SPI_TX SPI_PAD_2_SCK_3
-#define PAD_SPI_RX SERCOM_RX_PAD_0
-#endif // PERIPH_SPI
-SPIClass SPI(&PERIPH_SPI, PIN_SPI_MISO, PIN_SPI_SCK, PIN_SPI_MOSI, PAD_SPI_TX, PAD_SPI_RX);
+#ifdef SAMR34XPRO /* not set yet */
+SPIClass SPI(&sercom3, -1, -1, -1, (SercomSpiTXPad)1, (SercomRXPad)0);
 #endif
-#if SPI_INTERFACES_COUNT > 1
-SPIClass SPI1(&PERIPH_SPI1, PIN_SPI1_MISO, PIN_SPI1_SCK, PIN_SPI1_MOSI, PAD_SPI1_TX, PAD_SPI1_RX);
-#endif
-#if SPI_INTERFACES_COUNT > 2
-SPIClass SPI2(&PERIPH_SPI2, PIN_SPI2_MISO, PIN_SPI2_SCK, PIN_SPI2_MOSI, PAD_SPI2_TX, PAD_SPI2_RX);
-#endif
-#if SPI_INTERFACES_COUNT > 3
-SPIClass SPI3(&PERIPH_SPI3, PIN_SPI3_MISO, PIN_SPI3_SCK, PIN_SPI3_MOSI, PAD_SPI3_TX, PAD_SPI3_RX);
-#endif
-#if SPI_INTERFACES_COUNT > 4
-SPIClass SPI4(&PERIPH_SPI4, PIN_SPI4_MISO, PIN_SPI4_SCK, PIN_SPI4_MOSI, PAD_SPI4_TX, PAD_SPI4_RX);
-#endif
-#if SPI_INTERFACES_COUNT > 5
-SPIClass SPI5(&PERIPH_SPI5, PIN_SPI5_MISO, PIN_SPI5_SCK, PIN_SPI5_MOSI, PAD_SPI5_TX, PAD_SPI5_RX);
-#endif
-#if SPI_INTERFACES_COUNT > 6
-SPIClass SPI6(&PERIPH_SPI6, PIN_SPI6_MISO, PIN_SPI6_SCK, PIN_SPI6_MOSI, PAD_SPI6_TX, PAD_SPI6_RX);
-#endif
-#if SPI_INTERFACES_COUNT > 7
-SPIClass SPI7(&PERIPH_SPI7, PIN_SPI7_MISO, PIN_SPI7_SCK, PIN_SPI7_MOSI, PAD_SPI7_TX, PAD_SPI7_RX);
-#endif
-
-SPIClass SPI_RF(&sercom4, 6, 7, 5, (SercomSpiTXPad)2, (SercomRXPad)0);

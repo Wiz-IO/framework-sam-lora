@@ -27,94 +27,71 @@
 #include "SERCOM.h"
 #include "RingBuffer.h"
 
- // WIRE_HAS_END means Wire has end()
 #define WIRE_HAS_END 1
 
 class TwoWire : public Stream
 {
-  public:
-    TwoWire(SERCOM *s, uint8_t pinSDA, uint8_t pinSCL);
-    void begin();
-    void begin(uint8_t, bool enableGeneralCall = false);
-    void end();
-    void setClock(uint32_t);
+public:
+  TwoWire(SERCOM *s, uint8_t pinSDA, uint8_t pinSCL);
+  void begin();
+  void begin(uint8_t, bool enableGeneralCall = false);
+  void end();
+  void setClock(uint32_t);
 
-    void beginTransmission(uint8_t);
-    uint8_t endTransmission(bool stopBit);
-    uint8_t endTransmission(void);
+  void beginTransmission(uint8_t);
+  uint8_t endTransmission(bool stopBit);
+  uint8_t endTransmission(void);
 
-    uint8_t requestFrom(uint8_t address, size_t quantity, bool stopBit);
-    uint8_t requestFrom(uint8_t address, size_t quantity);
+  uint8_t requestFrom(uint8_t address, size_t quantity, bool stopBit);
+  uint8_t requestFrom(uint8_t address, size_t quantity);
 
-    size_t write(uint8_t data);
-    size_t write(const uint8_t * data, size_t quantity);
+  size_t write(uint8_t data);
+  size_t write(const uint8_t *data, size_t quantity);
 
-    virtual int available(void);
-    virtual int read(void);
-    virtual int peek(void);
-    virtual void flush(void);
-    void onReceive(void(*)(int));
-    void onRequest(void(*)(void));
+  virtual int available(void);
+  virtual int read(void);
+  virtual int peek(void);
+  virtual void flush(void);
+  void onReceive(void (*)(int));
+  void onRequest(void (*)(void));
 
-    inline size_t write(unsigned long n) { return write((uint8_t)n); }
-    inline size_t write(long n) { return write((uint8_t)n); }
-    inline size_t write(unsigned int n) { return write((uint8_t)n); }
-    inline size_t write(int n) { return write((uint8_t)n); }
-    using Print::write;
+  inline size_t write(unsigned long n) { return write((uint8_t)n); }
+  inline size_t write(long n) { return write((uint8_t)n); }
+  inline size_t write(unsigned int n) { return write((uint8_t)n); }
+  inline size_t write(int n) { return write((uint8_t)n); }
+  using Print::write;
 
-#if (SAMD51)
-    void onStopDetected(void);
-    void onAddressMatch(void);
-    void onDataReady(void);
-#else
-    void onService(void);
-#endif
+  void onService(void);
 
-  private:
-    SERCOM * sercom;
-    uint8_t _uc_pinSDA;
-    uint8_t _uc_pinSCL;
+private:
+  SERCOM *sercom;
+  uint8_t _uc_pinSDA;
+  uint8_t _uc_pinSCL;
 
-    bool transmissionBegun;
+  bool transmissionBegun;
 
-    // RX Buffer
-    RingBuffer rxBuffer;
+  // RX Buffer
+  RingBuffer rxBuffer;
 
-    //TX buffer
-    RingBuffer txBuffer;
-    uint8_t txAddress;
+  //TX buffer
+  RingBuffer txBuffer;
+  uint8_t txAddress;
 
-    // Callback user functions
-    void (*onRequestCallback)(void);
-    void (*onReceiveCallback)(int);
+  // Callback user functions
+  void (*onRequestCallback)(void);
+  void (*onReceiveCallback)(int);
 
-    // TWI clock frequency
-    static const uint32_t TWI_CLOCK = 100000;
+  // TWI clock frequency
+  static const uint32_t TWI_CLOCK = 100000;
 };
 
-#if WIRE_INTERFACES_COUNT > 0
-  extern TwoWire Wire;
-#endif
-#if WIRE_INTERFACES_COUNT > 1
-  extern TwoWire Wire1;
-#endif
-#if WIRE_INTERFACES_COUNT > 2
-  extern TwoWire Wire2;
-#endif
-#if WIRE_INTERFACES_COUNT > 3
-  extern TwoWire Wire3;
-#endif
-#if WIRE_INTERFACES_COUNT > 4
-  extern TwoWire Wire4;
-#endif
-#if WIRE_INTERFACES_COUNT > 5
-  extern TwoWire Wire5;
-#endif
-#if WIRE_INTERFACES_COUNT > 6
-  extern TwoWire Wire6;
-#endif
-#if WIRE_INTERFACES_COUNT > 7
-  extern TwoWire Wire7;
-#endif
+extern TwoWire Wire;
+extern TwoWire Wire1;
+extern TwoWire Wire2;
+extern TwoWire Wire3;
+extern TwoWire Wire4;
+extern TwoWire Wire5;
+extern TwoWire Wire6;
+extern TwoWire Wire7;
 
-#endif
+#endif //TwoWire_h
