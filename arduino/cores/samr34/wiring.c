@@ -22,13 +22,7 @@
 #include <variant.h>
 
 /** Tick Counter united by ms */
-static volatile uint32_t _ulTickCount = 0;
-
-void SysTick_Handler(void)
-{
-  // Increment tick count each ms
-  _ulTickCount++;
-}
+extern volatile uint32_t _ulTickCount;
 
 unsigned int millis(void)
 {
@@ -45,11 +39,9 @@ unsigned int micros(void)
   uint32_t ticks, ticks2;
   uint32_t pend, pend2;
   uint32_t count, count2;
-
   ticks2 = SysTick->VAL;
   pend2 = !!(SCB->ICSR & SCB_ICSR_PENDSTSET_Msk);
   count2 = _ulTickCount;
-
   do
   {
     ticks = ticks2;
@@ -59,7 +51,6 @@ unsigned int micros(void)
     pend2 = !!(SCB->ICSR & SCB_ICSR_PENDSTSET_Msk);
     count2 = _ulTickCount;
   } while ((pend != pend2) || (count != count2) || (ticks < ticks2));
-
   return ((count + pend) * 1000) + (((SysTick->LOAD - ticks) * (1048576 / (VARIANT_MCK / 1000000))) >> 20);
   // this is an optimization to turn a runtime division into two compile-time divisions and
   // a runtime multiplication and shift, saving a few cycles
@@ -73,9 +64,7 @@ unsigned int seconds(void)
 void delay(unsigned int ms)
 {
   if (ms == 0)
-  {
     return;
-  }
   uint32_t start = _ulTickCount;
   do
   {

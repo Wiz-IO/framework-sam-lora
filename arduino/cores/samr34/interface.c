@@ -36,7 +36,6 @@ void putString(char *str)
 
 #endif
 
-
 #include <samr3.h>
 uint32_t rnd(void)
 {
@@ -46,4 +45,12 @@ uint32_t rnd(void)
     }
     TRNG->CTRLA.reg &= ~(TRNG_CTRLA_ENABLE);
     return (TRNG->DATA.reg);
+}
+
+void kick_watchdog(void)
+{
+    WDT->CLEAR.reg = WDT_CLEAR_CLEAR_KEY;
+    while (WDT->SYNCBUSY.reg)
+    { 
+    }
 }

@@ -23,6 +23,9 @@
 
 #include <samr34.h>
 
+extern void system_init(void);
+extern int main(void);
+
 /* Initialize segments */
 extern uint32_t _sfixed;
 extern uint32_t _efixed;
@@ -34,13 +37,11 @@ extern uint32_t _ezero;
 extern uint32_t _sstack;
 extern uint32_t _estack;
 
-extern int main(void);
-
 extern void __libc_init_array(void);
+void _init(void) { /* for __libc_init_array */ }
 
-/* Default empty handler */
 void Dummy_Handler(void) {
-    while (1) { }
+    while (1) { /* Default empty handler */ }
 }
 
 /* Cortex-M0+ core handlers */
@@ -202,12 +203,6 @@ const DeviceVectors exception_table = {
        
 };
 
-void ___HardFault_Handler(void)
-{
-  __BKPT(13);
-  while (1);
-}
-
 void Reset_Handler(void)
 {
         uint32_t *pSrc, *pDest;
@@ -234,6 +229,8 @@ void Reset_Handler(void)
         /* Overwriting the default value of the NVMCTRL.CTRLB.MANW bit (errata reference 13134) */
         NVMCTRL->CTRLB.bit.MANW = 1;
 
+        system_init(); // before cpp
+
         /* Initialize the C library */
         __libc_init_array();
 
@@ -243,8 +240,6 @@ void Reset_Handler(void)
         /* Infinite loop */
         while (1);
 }
-
-void _init(void) { /* need for __libc_init_array */}
 
 //////////////////////////////////////////////////////////////////
 //                                                              //
