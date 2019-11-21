@@ -21,15 +21,10 @@
 #ifndef __VARIANT_H__
 #define __VARIANT_H__
 
-#define MATTAIRTECH_ARDUINO_SAMD_VARIANT_COMPLIANCE 10608
-#define VARIANT_MCK (48000000ul)
-#define NVM_SW_CALIB_DFLL48M_FINE_VAL (512)
-
 #ifdef __cplusplus
 extern "C"
 {
 #endif
-
 // C ware //////////////////////////////////////////////////////////////////////////
 
 #include <stddef.h>
@@ -39,22 +34,30 @@ extern "C"
 #include <stdlib.h>
 #include <stdarg.h>
 
-extern uint32_t SystemCoreClock;
+#define VARIANT_MCK (48000000ul)
 
-#define NUM_PIN_DESCRIPTION_ENTRIES (20u) /* re-edit */
+#define NUM_PIN_DESCRIPTION_ENTRIES (63u) 
 
-#define LED                   (2) /* from table */
+/* LED from table */
+#define LED                   (29) 
 #define LED_BUILTIN           LED
 #define LED_Y                 LED
-#define LED_G                 (3) /* from table */
-#define BUTTON                (4) /* from table */
+#define LED_G                 (30) 
+#define BUTTON                (31) 
 
-#define PINS_COUNT            (20u) /* re-edit */
-#define NUM_DIGITAL_PINS      (20u) /* re-edit */
-#define NUM_ANALOG_INPUTS     (6u)  /* re-edit */
-#define NUM_ANALOG_OUTPUTS    (1u)  /* re-edit */
+/* Serial from table */
+#define PIN_SERIAL_TX         (27) 
+#define PIN_SERIAL_RX         (28) 
 
-// other...
+
+/* I2C from table */
+#define PIN_WIRE_SDA          (34) 
+#define PIN_WIRE_SCL          (35) 
+
+/* SPI from table */
+
+
+/* RF from table */
 
 #define analogInputToDigitalPin(p)  ((p < 6u) ? (p) + 14u : -1)
 #define digitalPinToPort(P)			    ( &(PORT->Group[g_APinDescription[P].ulPort]) )
@@ -64,6 +67,8 @@ extern uint32_t SystemCoreClock;
 #define portModeRegister(port)		  ( &(port->DIR.reg) )
 #define digitalPinHasPWM(P)			    ( g_APinDescription[P].ulPWMChannel != NOT_ON_PWM || g_APinDescription[P].ulTCChannel != NOT_ON_TIMER )
 #define digitalPinToInterrupt(P)	  ( P )
+
+extern uint32_t SystemCoreClock;
 
 int analogRead(uint8_t pin);
 void analogWrite(uint8_t pin, int val);
@@ -76,8 +81,8 @@ void analogWrite(uint8_t pin, int val);
 void initVariant();
 
 #include <SERCOM.h>
-extern SERCOM sercom0;
-extern SERCOM sercom1;
+extern SERCOM sercom0; // SERIAL
+extern SERCOM sercom1; // I2C
 extern SERCOM sercom2;
 extern SERCOM sercom3;
 extern SERCOM sercom4; // RESERVED FOR RF
@@ -85,6 +90,9 @@ extern SERCOM sercom5;
 
 #include <Uart.h>
 extern Uart Serial;
+extern Uart Serial1;
+
+#define SAMR34XPRO /* for libraries */
 
 #endif //__cplusplus
 #endif /* __VARIANT_H__ */
