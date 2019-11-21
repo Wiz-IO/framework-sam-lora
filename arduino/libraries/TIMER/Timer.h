@@ -1,5 +1,5 @@
 /*
-    Simple Timer, based of Atmel sysTimer ... loop() must be fast !!!
+    Simple Soft Timer, based of Atmel sysTimer ... loop() must be fast !!!
     Created on: 01.01.2020
     Author: Georgi Angelov
 
