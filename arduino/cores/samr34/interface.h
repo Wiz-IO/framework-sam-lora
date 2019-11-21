@@ -37,7 +37,6 @@ extern "C"
 #include <math.h>
 #include <samr3.h>
 
-#define VARIANT_MCK (48000000ul)
   extern uint32_t SystemCoreClock;
 
 #define interrupts() __enable_irq()
@@ -114,15 +113,20 @@ extern "C"
 #undef assert
 #define assert(__e) ((__e) ? (void)0 : abort())
 
-static inline int gclk_is_syncing(const uint8_t generator)
-{
+  static inline int gclk_is_syncing(const uint8_t generator)
+  {
     return (GCLK->SYNCBUSY.reg & GCLK_SYNCBUSY_GENCTRL(generator));
-}
-void gclk_setup(int generator, uint32_t reg);
+  }
+  
+  void gclk_setup(int generator, uint32_t reg);
 
-void kick_watchdog(void);
-uint32_t rnd(void);
-uint32_t convert_byte_array_to_32_bit(uint8_t *data);
+  void kick_watchdog(void);
+
+  uint32_t rnd(void);
+
+  uint32_t convert_byte_array_to_32_bit(uint8_t *data);
+
+  int serial_number(uint8_t *b, uint32_t size);
 
 #ifdef __cplusplus
 }

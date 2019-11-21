@@ -63,7 +63,7 @@ typedef enum _ETCChannel
   TC7_CH0  = (7<<4)|(1<<3)|(0),
   TC7_CH1  = (7<<4)|(1<<3)|(1),
 
-  NOT_ON_TIMER = (1<<7),
+  TIMER_NONE = (1<<7),
 } ETCChannel ;
 
 extern const void* g_apTCInstances[TCC_INST_NUM + TC_INST_NUM] ;
@@ -96,55 +96,55 @@ typedef enum _EPortType
 /* Definitions and types for pins */
 typedef enum _EAnalogChannel
 {
-  ADC_Channel0 = 0,
-  ADC_Channel1,
-  ADC_Channel2,
-  ADC_Channel3,
-  ADC_Channel4,
-  ADC_Channel5,
-  ADC_Channel6,
-  ADC_Channel7,
-  ADC_Channel8,
-  ADC_Channel9,
-  ADC_Channel10,
-  ADC_Channel11,
-  ADC_Channel12,
-  ADC_Channel13,
-  ADC_Channel14,
-  ADC_Channel15,
-  ADC_Channel16,
-  ADC_Channel17,
-  ADC_Channel18,
-  ADC_Channel19,
+  ADC_0 = 0,
+  ADC_1,
+  ADC_2,
+  ADC_3,
+  ADC_4,
+  ADC_5,
+  ADC_6,
+  ADC_7,
+  ADC_8,
+  ADC_9,
+  ADC_10,
+  ADC_11,
+  ADC_12,
+  ADC_13,
+  ADC_14,
+  ADC_15,
+  ADC_16,
+  ADC_17,
+  ADC_18,
+  ADC_19,
   
-  DAC_Channel0,
-  DAC_Channel1,
+  DAC_0,
+  DAC_1,
 
-  No_ADC_Channel,
+  ADC_NONE,
 } EAnalogChannel ;
 
 typedef enum
 {
-  EXTERNAL_INT_0 = 0,
-  EXTERNAL_INT_1,
-  EXTERNAL_INT_2,
-  EXTERNAL_INT_3,
-  EXTERNAL_INT_4,
-  EXTERNAL_INT_5,
-  EXTERNAL_INT_6,
-  EXTERNAL_INT_7,
-  EXTERNAL_INT_8,
-  EXTERNAL_INT_9,
-  EXTERNAL_INT_10,
-  EXTERNAL_INT_11,
-  EXTERNAL_INT_12,
-  EXTERNAL_INT_13,
-  EXTERNAL_INT_14,
-  EXTERNAL_INT_15,
-  EXTERNAL_INT_NMI,
+  EINT_0 = 0,
+  EINT_1,
+  EINT_2,
+  EINT_3,
+  EINT_4,
+  EINT_5,
+  EINT_6,
+  EINT_7,
+  EINT_8,
+  EINT_9,
+  EINT_10,
+  EINT_11,
+  EINT_12,
+  EINT_13,
+  EINT_14,
+  EINT_15,
+  EINT_NMI,
   EXTERNAL_NUM_INTERRUPTS,
   NOT_AN_INTERRUPT,
-  EXTERNAL_INT_NONE = NOT_AN_INTERRUPT,
+  EINT_NONE = NOT_AN_INTERRUPT,
 } EExt_Interrupts;
 
 #define GetExtInt( x ) g_APinDescription[x].ulExtInt
@@ -190,6 +190,8 @@ typedef enum _EPioType
   PIO_MULTI,        /* The pin can be configured to any type based on the attributes. */
   PIO_STARTUP,      /* Used as parameter to pinPeripheral() only to set startup state (enable INEN only) */
   PIO_NOT_A_PIN,    /* Not under control of a peripheral. */
+
+  PIO_NONE = -1
 } EPioType ;
 
 /* Pin Attributes to be OR-ed */

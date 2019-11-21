@@ -108,7 +108,7 @@ void attachInterrupt(uint32_t pin, voidFuncPtr callback, uint32_t mode)
     ISRcallback[current] = callback; // List of callback adresses
 
     // Look for right CONFIG register to be addressed
-    if (in > EXTERNAL_INT_7)
+    if (in > EINT_7)
     {
       config = 1;
     }

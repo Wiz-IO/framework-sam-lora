@@ -6,6 +6,8 @@ void initVariant(void) __attribute__((weak));
 void setup(void);
 void loop(void);
 
+extern "C" void SYS_TimerTaskHandler(void) __attribute__((weak));
+
 extern "C" int main(void)
 {
     initVariant();
@@ -13,12 +15,16 @@ extern "C" int main(void)
     while (1)
     {
         loop();
+
         if (serialEventRun)
             serialEventRun();
-            
+
+        if (SYS_TimerTaskHandler)
+            SYS_TimerTaskHandler();
+
 #ifndef DISABLE_WATCHDOG
         kick_watchdog();
-#endif        
+#endif
     }
     return 0;
 }

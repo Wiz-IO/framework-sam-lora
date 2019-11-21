@@ -79,7 +79,7 @@ int pinPeripheral(uint32_t ulPin, uint32_t ulPeripheral)
     break;
 
   case PIO_ANALOG_ADC:
-    if (GetADC(ulPin) == No_ADC_Channel)
+    if (GetADC(ulPin) == ADC_NONE)
       return -1;
     peripheral = PER_ANALOG;
     break;
@@ -91,7 +91,7 @@ int pinPeripheral(uint32_t ulPin, uint32_t ulPeripheral)
 
   case PIO_TIMER_PWM:
   case PIO_TIMER_CAPTURE:
-    if (g_APinDescription[ulPin].ulTCChannel == NOT_ON_TIMER)
+    if (g_APinDescription[ulPin].ulTCChannel == TIMER_NONE)
       return -1;
     if ((peripheralAttribute & PER_ATTR_TIMER_MASK) == PER_ATTR_TIMER_STD)
     {

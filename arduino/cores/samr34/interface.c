@@ -37,6 +37,18 @@ void putString(char *str)
 #endif
 
 #include <samr3.h>
+
+void gclk_setup(int generator, uint32_t reg)
+{
+    while (gclk_is_syncing(generator))
+    {
+    }
+    GCLK->GENCTRL[generator].reg = reg;
+    while (gclk_is_syncing(generator))
+    {
+    }
+}
+
 uint32_t rnd(void)
 {
     TRNG->CTRLA.reg |= TRNG_CTRLA_ENABLE;
@@ -51,6 +63,20 @@ void kick_watchdog(void)
 {
     WDT->CLEAR.reg = WDT_CLEAR_CLEAR_KEY;
     while (WDT->SYNCBUSY.reg)
-    { 
+    {
     }
+}
+
+int serial_number(uint8_t *sn, uint32_t size)
+{
+    if (sn && size == 16)
+    {
+        uint32_t *p = (uint32_t *)sn;
+        *p++ = *((uint32_t *)0x80A00C);
+        *p++ = *((uint32_t *)0x80A040);
+        *p++ = *((uint32_t *)0x80A044);
+        *p++ = *((uint32_t *)0x80A048);
+        return 0;
+    }
+    return -1;
 }
