@@ -17,7 +17,7 @@ static void enable_XOSC32K(void)
                                OSC32KCTRL_XOSC32K_STARTUP(0) |
                                OSC32KCTRL_XOSC32K_XTALEN |
                                OSC32KCTRL_XOSC32K_EN32K |
-                               OSC32KCTRL_XOSC32K_EN1K);
+                               OSC32KCTRL_XOSC32K_EN1K); // 1024 Hz for RTC
     while (0 == (OSC32KCTRL->STATUS.reg & OSC32KCTRL_STATUS_XOSC32KRDY))
     {
     }
@@ -49,7 +49,6 @@ void init_system_clock(void)
     OSCCTRL->DFLLCTRL.bit.ONDEMAND = 0;
     waitForDFLL();
 
-    /* 32kHz * 1500 = 48MHz CSTEP and FSTEP must be 50% or less */
     OSCCTRL->DFLLMUL.reg = OSCCTRL_DFLLMUL_MUL(1465) | /* 48005120 Hz */
                            OSCCTRL_DFLLMUL_CSTEP(1) |
                            OSCCTRL_DFLLMUL_FSTEP(1);
@@ -92,7 +91,6 @@ void init_systick(void)
 
 /** Tick Counter united by ms */
 volatile uint32_t _ulTickCount = 0;
-
 void SysTick_Handler(void)
 {
     _ulTickCount++; // Increment tick count each ms
