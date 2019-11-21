@@ -25,6 +25,7 @@
 #define NO_OTHER      TIMER_NONE, ADC_NONE, EINT_NONE, GCLK_CCL_NONE
 
 const PinDescription g_APinDescription[] = {
+// NOT READY
 /******* ALL PINS **************************************************************************************************************************/
   /* 00 */ {NOT_CONNECTED}, // PA00 - XIN32
   /* 01 */ {NOT_CONNECTED}, // PA01 - XOUT32
