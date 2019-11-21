@@ -13,7 +13,7 @@ void system_init(void)
     OSCCTRL->INTFLAG.reg = OSCCTRL_INTFLAG_DFLLRDY;
     SUPC->INTFLAG.reg = SUPC_INTFLAG_BOD33RDY | SUPC_INTFLAG_BOD33DET;
 
-    /* FLASH */
+    /* FLASH ... TODO make the best for 48Mhz */
     NVMCTRL->CTRLB.bit.RWS = 2;         // wait states ??? at 48MHz ???
     PM->INTFLAG.reg = PM_INTFLAG_PLRDY; /* Switch to PL2 to be sure configuration of GCLK0 is safe */
     PM->PLCFG.reg = PM_PLCFG_PLSEL_PL2; /* Switch performance level = SYSTEM_PERFORMANCE_LEVEL_2 */
