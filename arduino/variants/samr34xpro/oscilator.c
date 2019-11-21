@@ -24,7 +24,7 @@ static void enable_XOSC32K(void)
 }
 
 /* 
-    Form XOSC32K to DFLL48M 
+    from XOSC32K to DFLL48M 
 */
 void init_system_clock(void)
 {
