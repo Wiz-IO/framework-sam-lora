@@ -15,6 +15,9 @@
   Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA   
  */
 
+#ifndef _AES_H_INCLUDED
+#define _AES_H_INCLUDED
+
 #include <Arduino.h>
 #include <samr3.h>
 
@@ -107,10 +110,12 @@ public:
     AESClass() { default_config(); }
     ~AESClass() { end(); }
 
-    uint8_t *encode(void *vBlock, void *vMasterKey, int size = 4)
+    uint8_t *encode(void *vBlock, void *vKey)
     {
+        if (NULL == vBlock || NULL == vKey)
+            abort();
         uint8_t *block = (uint8_t *)vBlock;
-        uint8_t *masterKey = (uint8_t *)vMasterKey;
+        uint8_t *masterKey = (uint8_t *)vKey;
         /* Configure the AES. */
         cfg.encrypt_mode = AES_ENCRYPTION;
         cfg.key_size = AES_KEY_SIZE_128;
@@ -119,31 +124,25 @@ public:
         cfg.cfb_size = AES_CFB_SIZE_128;
         cfg.lod = false;
         config(&cfg);
-
-        /* Set the cryptographic key. */
-        for (uint8_t i = 0; i < size; i++)
+        int len = get_block_len(); // or abort()
+        for (uint8_t i = 0; i < len; i++)
             block_data[i] = convert_byte_array_to_32_bit(masterKey + (i * (sizeof(uint32_t))));
         write_key(block_data);
-
-        /* The initialization vector is not used by the ECB cipher mode. */
-        new_message();
-
-        /* Write the data to be ciphered to the input data registers. */
-        for (uint8_t i = 0; i < size; i++)
+        new_message(); /* The initialization vector is not used by the ECB cipher mode. */
+        for (uint8_t i = 0; i < len; i++)
             block_data[i] = convert_byte_array_to_32_bit(block + (i * (sizeof(uint32_t))));
         write_data(block_data);
-
         clear_message();
-        /* Wait for the end of the encryption process. */
-        wait_ready();
-
+        wait_ready(); /* Wait for the end of the encryption process. */
         read_data(block_data);
-        memcpy(block, block_data, size * sizeof(uint32_t));
+        memcpy(block, block_data, len * sizeof(uint32_t));
         return block;
     }
 
-    uint8_t *decode(void *vBlock, void *vKey, int size = 4)
+    uint8_t *decode(void *vBlock, void *vKey)
     {
+        if (NULL == vBlock || NULL == vKey)
+            abort();
         uint8_t *block = (uint8_t *)vBlock;
         uint8_t *key = (uint8_t *)vKey;
         /* Configure the AES. */
@@ -154,22 +153,17 @@ public:
         cfg.cfb_size = AES_CFB_SIZE_128;
         cfg.lod = false;
         config(&cfg);
-
-        /* Set the cryptographic key. */
-        for (uint8_t i = 0; i < size; i++)
+        int len = get_block_len(); // or abort()
+        for (uint8_t i = 0; i < len; i++)
             block_data[i] = convert_byte_array_to_32_bit(key + (i * (sizeof(uint32_t))));
         write_key(block_data);
-
         /* The initialization vector is not used by the ECB cipher mode. */
-        /* Write the data to be deciphered to the input data registers. */
-        for (uint8_t i = 0; i < size; i++)
+        for (uint8_t i = 0; i < len; i++)
             block_data[i] = convert_byte_array_to_32_bit(block + (i * (sizeof(uint32_t))));
         write_data(block_data);
-        /* Wait for the end of the decryption process. */
-        wait_ready();
-
+        wait_ready(); /* Wait for the end of the decryption process. */
         read_data(block_data);
-        memcpy(block, block_data, size * sizeof(uint32_t));
+        memcpy(block, block_data, len * sizeof(uint32_t));
         return block;
     }
 
@@ -269,41 +263,27 @@ private:
 
     inline void clear_message() { AES->CTRLB.reg &= ~AES_CTRLB_NEWMSG; }
 
-    uint32_t convert_byte_array_to_32_bit(uint8_t *data)
+    int get_block_len()
     {
-        union {
-            uint32_t u32;
-            uint8_t u8[4];
-        } long_addr;
-        uint8_t index;
-        for (index = 0; index < 4; index++)
-            long_addr.u8[index] = *data++;
-        return long_addr.u32;
+        switch (cfg.key_size)
+        {
+        case AES_KEY_SIZE_128:
+            return 4;
+        case AES_KEY_SIZE_192:
+            return 6;
+        case AES_KEY_SIZE_256:
+            return 8;
+        default:
+            abort();
+            return -1;
+        }
     }
 
     void write_key(const uint32_t *key)
     {
-        int key_length = 0;
         if (key) /* Validate arguments. */
         {
-            switch (cfg.key_size)
-            {
-            case AES_KEY_SIZE_128:
-                key_length = 4;
-                break;
-
-            case AES_KEY_SIZE_192:
-                key_length = 6;
-                break;
-
-            case AES_KEY_SIZE_256:
-                key_length = 8;
-                break;
-
-            default:
-                break;
-            }
-            for (int i = 0; i < key_length; i++)
+            for (int i = 0; i < get_block_len(); i++)
                 AES->KEYWORD[i].reg = *key++;
         }
     }
@@ -361,3 +341,5 @@ private:
         }
     }
 };
+
+#endif
