@@ -171,4 +171,8 @@ SECTIONS
     . = ALIGN(4);
     _end = . ;
 
+
+/* for memory allocator */
+PROVIDE_HIDDEN ( _heap_begin = _end );
+PROVIDE_HIDDEN ( _heap_size  = _end - 0x20000000 );
 }
