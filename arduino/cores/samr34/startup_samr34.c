@@ -251,13 +251,17 @@ void Reset_Handler(void)
 #include <stdarg.h>
 #include <sys/types.h>
 #include <sys/stat.h>
+#include "umm_malloc.h"
 
 #undef errno
-int errno;
-int _end;
+extern uint32_t errno;
+extern uint32_t _end;
 
 extern caddr_t _sbrk(int incr) 
 {
+#ifndef DISABLE_UMM   
+    return (caddr_t)-1;
+#else
     static unsigned char *heap = NULL;
     unsigned char *prev_heap;
     if (heap == NULL)
@@ -266,7 +270,8 @@ extern caddr_t _sbrk(int incr)
     }
     prev_heap = heap;
     heap += incr;
-    return (caddr_t)prev_heap;
+    return (caddr_t)prev_heap;    
+#endif    
 }
 
 void abort(void)

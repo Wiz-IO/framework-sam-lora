@@ -1,5 +1,10 @@
 #include <interface.h>
 
+uint16_t convert_byte_array_to_16_bit(uint8_t *data)
+{
+    return (data[0] | ((uint16_t)data[1] << 8));
+}
+
 uint32_t convert_byte_array_to_32_bit(uint8_t *data)
 {
     union {
@@ -36,8 +41,6 @@ void putString(char *str)
 
 #endif
 
-#include <samr3.h>
-
 void gclk_setup(int generator, uint32_t reg)
 {
     while (gclk_is_syncing(generator))
@@ -71,6 +74,7 @@ int serial_number(uint8_t *sn, uint32_t size)
 {
     if (sn && size == 16)
     {
+        memset(sn, 0, 16);
         uint32_t *p = (uint32_t *)sn;
         *p++ = *((uint32_t *)0x80A00C);
         *p++ = *((uint32_t *)0x80A040);
