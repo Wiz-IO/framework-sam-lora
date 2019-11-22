@@ -43,17 +43,20 @@ public:
         MCLK->APBAMASK.reg |= MCLK_APBAMASK_RTC; // system_apb_clock_set_mask(0, 0x100);
 
         /* Select RTC clock */
-        OSC32KCTRL->RTCCTRL.reg = OSC32KCTRL_RTCCTRL_RTCSEL_XOSC1K_Val; // 1.024kHz from 32KHz external oscillator
+        OSC32KCTRL->RTCCTRL.bit.RTCSEL = OSC32KCTRL_RTCCTRL_RTCSEL_XOSC1K_Val; // 1.024kHz from 32KHz external oscillator
 
         /* Reset module to hardware defaults. */
         reset();
 
-        /* Set 32-bit mode and clear on match if applicable. */
-        RTC->MODE0.CTRLA.reg |= RTC_MODE0_CTRLA_MODE(0) |
-                                //RTC_MODE0_CTRLA_MATCHCLR |
-                                RTC_MODE0_CTRLA_COUNTSYNC |
-                                RTC_MODE0_CTRLA_PRESCALER_DIV1024; // one second
-        enable();
+        /* enable 32-bit mode */
+        RTC->MODE0.CTRLA.reg = RTC_MODE0_CTRLA_ENABLE |
+                               RTC_MODE0_CTRLA_MODE(0) |
+                               RTC_MODE0_CTRLA_COUNTSYNC |
+                               RTC_MODE0_CTRLA_PRESCALER_DIV1024; // one second
+        wait_busy();
+
+        //Serial.printf("RTC %08X", RTC->MODE0.CTRLA.reg);
+        //wait_busy();
     }
 
     void enable()
@@ -86,21 +89,24 @@ public:
 
     void set(uint32_t value)
     {
+        wait_busy();
         RTC->MODE0.COUNT.reg = value;
         wait_busy();
     }
 
     inline uint32_t get()
     {
-        uint32_t value = RTC->MODE0.COUNT.reg;
         wait_busy();
-        return value;
+        uint32_t val = RTC->MODE0.COUNT.reg;
+        wait_busy();
+        return val;
     }
 
     void set_compare(uint32_t index, uint32_t value)
     {
         if (index > RTC_COMP32_NUM)
             abort();
+        wait_busy();
         RTC->MODE0.COMP[index].reg = value;
         wait_busy();
     }
@@ -109,7 +115,10 @@ public:
     {
         if (index > RTC_COMP32_NUM)
             abort();
-        return RTC->MODE0.COMP[index].reg;
+        wait_busy();
+        uint32_t val = RTC->MODE0.COMP[index].reg;
+        wait_busy();
+        return val;
     }
 
     //start(uint32_t sleepTicks, void (*cb)(void)){}
