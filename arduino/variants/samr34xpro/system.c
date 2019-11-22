@@ -1,5 +1,6 @@
 #include <stdint.h>
 #include <samr3.h>
+#include "umm_malloc.h"
 
 void init_system_clock(void);
 void init_systick(void);
@@ -13,7 +14,7 @@ void system_init(void)
     OSCCTRL->INTFLAG.reg = OSCCTRL_INTFLAG_DFLLRDY;
     SUPC->INTFLAG.reg = SUPC_INTFLAG_BOD33RDY | SUPC_INTFLAG_BOD33DET;
 
-    /* FLASH ... TODO make the best for 48Mhz */
+    /* FLASH */
     NVMCTRL->CTRLB.bit.RWS = 2;         // wait states ??? at 48MHz ???
     PM->INTFLAG.reg = PM_INTFLAG_PLRDY; /* Switch to PL2 to be sure configuration of GCLK0 is safe */
     PM->PLCFG.reg = PM_PLCFG_PLSEL_PL2; /* Switch performance level = SYSTEM_PERFORMANCE_LEVEL_2 */
@@ -24,6 +25,10 @@ void system_init(void)
     init_system_clock();
     
     init_systick();
+
+#ifndef DISABLE_UMM
+    umm_init();
+#endif
 
 #ifndef DISABLE_WATCHDOG
     WDT->CTRLA.bit.ENABLE = 1;

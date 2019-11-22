@@ -55,18 +55,36 @@ extern "C"
 #define PIN_WIRE_SCL          (35) 
 
 /* SPI from table */
-
+#define PIN_SPI_MOSI          (36)
+#define PIN_SPI_MISO          (37)
+#define PIN_SPI_SCK           (38)
+#define PIN_SPI_SS            (39)
 
 /* RF from table */
+#define RF_SEL                (50)  
+#define RF_MOSI               (51)  
+#define RF_MISO               (52)  
+#define RF_SCK                (53)  
+#define RF_RST                (54)   
+#define RF_DIO0               (55)
+#define RF_DIO1               (56)
+#define RF_DIO2               (57)
+#define RF_DIO3               (58)
+#define RF_DIO4               (59)
+#define RF_DIO5               (60)
+#define RF_TCXO               (61)
+#define RF_SWITCH             (62)
+
+/* * */
 
 #define analogInputToDigitalPin(p)  ((p < 6u) ? (p) + 14u : -1)
-#define digitalPinToPort(P)			    ( &(PORT->Group[g_APinDescription[P].ulPort]) )
-#define digitalPinToBitMask(P)		  ( 1 << g_APinDescription[P].ulPin )
-#define portOutputRegister(port)	  ( &(port->OUT.reg) )
-#define portInputRegister(port)		  ( &(port->IN.reg) )
-#define portModeRegister(port)		  ( &(port->DIR.reg) )
-#define digitalPinHasPWM(P)			    ( g_APinDescription[P].ulPWMChannel != NOT_ON_PWM || g_APinDescription[P].ulTCChannel != NOT_ON_TIMER )
-#define digitalPinToInterrupt(P)	  ( P )
+#define digitalPinToPort(P)         ( &(PORT->Group[g_APinDescription[P].ulPort]) )
+#define digitalPinToBitMask(P)      ( 1 << g_APinDescription[P].ulPin )
+#define portOutputRegister(port)    ( &(port->OUT.reg) )
+#define portInputRegister(port)     ( &(port->IN.reg) )
+#define portModeRegister(port)      ( &(port->DIR.reg) )
+#define digitalPinHasPWM(P)         ( g_APinDescription[P].ulPWMChannel != NOT_ON_PWM || g_APinDescription[P].ulTCChannel != NOT_ON_TIMER )
+#define digitalPinToInterrupt(P)    ( P )
 
 extern uint32_t SystemCoreClock;
 
@@ -81,12 +99,12 @@ void analogWrite(uint8_t pin, int val);
 void initVariant();
 
 #include <SERCOM.h>
-extern SERCOM sercom0; // SERIAL
+extern SERCOM sercom0; // Serial
 extern SERCOM sercom1; // I2C
 extern SERCOM sercom2;
-extern SERCOM sercom3;
+extern SERCOM sercom3; // Serial1
 extern SERCOM sercom4; // RESERVED FOR RF
-extern SERCOM sercom5;
+extern SERCOM sercom5; // SPI
 
 #include <Uart.h>
 extern Uart Serial;
