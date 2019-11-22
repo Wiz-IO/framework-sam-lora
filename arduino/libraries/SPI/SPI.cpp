@@ -89,7 +89,7 @@ static inline unsigned char __interruptsStatus(void)
 
 void SPIClass::usingInterrupt(int interruptNumber)
 {
-  if ((interruptNumber == NOT_AN_INTERRUPT) || (interruptNumber == EXTERNAL_INT_NMI))
+  if ((interruptNumber == NOT_AN_INTERRUPT) || (interruptNumber == EINT_NMI))
     return;
   uint8_t irestore = interruptsStatus();
   noInterrupts();
@@ -106,7 +106,7 @@ void SPIClass::usingInterrupt(int interruptNumber)
 
 void SPIClass::notUsingInterrupt(int interruptNumber)
 {
-  if ((interruptNumber == NOT_AN_INTERRUPT) || (interruptNumber == EXTERNAL_INT_NMI))
+  if ((interruptNumber == NOT_AN_INTERRUPT) || (interruptNumber == EINT_NMI))
     return;
   if (interruptMode & SPI_IMODE_GLOBAL)
     return; // can't go back, as there is no reference count
@@ -243,5 +243,5 @@ void SPIClass::detachInterrupt()
 }
 
 #ifdef SAMR34XPRO /* not set yet */
-SPIClass SPI(&sercom3, -1, -1, -1, (SercomSpiTXPad)1, (SercomRXPad)0);
+SPIClass SPI(&sercom3, 37, 38, 36, (SercomSpiTXPad)1, (SercomRXPad)0);
 #endif
