@@ -1,7 +1,7 @@
-    Not tested in LoRaWAN network
+    Not tested in LoRaWAN network ( I not have coordinator )
 
     Library info:
       https://github.com/BeelanMX/Beelan-LoRaWAN
       
     Edit:
-        SPI is renamed to RF
+        in library SPI is renamed to RF, RFClass point to internal sercom-spi
