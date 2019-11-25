@@ -39,6 +39,9 @@ extern "C"
 #define NUM_PIN_DESCRIPTION_ENTRIES (63u) 
 
 /* LED from table */
+#define LED_ON                (0) 
+#define LED_OFF               (1) 
+
 #define LED                   (29) 
 #define LED_BUILTIN           LED
 #define LED_Y                 LED
