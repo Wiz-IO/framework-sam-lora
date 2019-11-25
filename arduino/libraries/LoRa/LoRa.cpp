@@ -1,5 +1,7 @@
 // Copyright (c) Sandeep Mistry. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
+//  doc: https://github.com/sandeepmistry/arduino-LoRa
+//  edit: Georgi Angelov
 
 #include <LoRa.h>
 
@@ -57,16 +59,12 @@
 
 #define MAX_PKT_LENGTH 255
 
-#if (ESP8266 || ESP32)
-#define ISR_PREFIX ICACHE_RAM_ATTR
-#else
 #define ISR_PREFIX
-#endif
 
 LoRaClass::LoRaClass() : _spiSettings(LORA_DEFAULT_SPI_FREQUENCY, MSBFIRST, SPI_MODE0),
                          _spi(&LORA_DEFAULT_SPI),
                          _ss(LORA_DEFAULT_SS_PIN), _reset(LORA_DEFAULT_RESET_PIN), _dio0(LORA_DEFAULT_DIO0_PIN),
-                         _frequency(0),
+                         _frequency(0), 
                          _packetIndex(0),
                          _implicitHeaderMode(0),
                          _onReceive(NULL)
@@ -77,32 +75,13 @@ LoRaClass::LoRaClass() : _spiSettings(LORA_DEFAULT_SPI_FREQUENCY, MSBFIRST, SPI_
 
 int LoRaClass::begin(long frequency)
 {
-#if defined(ARDUINO_SAMD_MKRWAN1300) || defined(ARDUINO_SAMD_MKRWAN1310)
-  pinMode(LORA_IRQ_DUMB, OUTPUT);
-  digitalWrite(LORA_IRQ_DUMB, LOW);
-
-  // Hardware reset
-  pinMode(LORA_BOOT0, OUTPUT);
-  digitalWrite(LORA_BOOT0, LOW);
-
-  pinMode(LORA_RESET, OUTPUT);
-  digitalWrite(LORA_RESET, HIGH);
-  delay(200);
-  digitalWrite(LORA_RESET, LOW);
-  delay(200);
-  digitalWrite(LORA_RESET, HIGH);
-  delay(50);
-#endif
-
   // setup pins
   pinMode(_ss, OUTPUT);
   // set SS high
   digitalWrite(_ss, HIGH);
-
   if (_reset != -1)
   {
     pinMode(_reset, OUTPUT);
-
     // perform reset
     digitalWrite(_reset, LOW);
     delay(10);
@@ -293,12 +272,13 @@ long LoRaClass::packetFrequencyError()
   freqError <<= 8L;
   freqError += static_cast<int32_t>(readRegister(REG_FREQ_ERROR_LSB));
 
-  if (readRegister(REG_FREQ_ERROR_MSB) & B1000)
-  {                      // Sign bit is on
+  if (readRegister(REG_FREQ_ERROR_MSB) & B1000) // Sign bit is on
+  { 
     freqError -= 524288; // B1000'0000'0000'0000'0000
   }
 
-  const float fXtal = 32E6;                                                                                         // FXOSC: crystal oscillator (XTAL) frequency (2.5. Chip Specification, p. 14)
+  const float fXtal = 32E6; // FXOSC: crystal oscillator (XTAL) frequency (2.5. Chip Specification, p. 14)
+
   const float fError = ((static_cast<float>(freqError) * (1L << 24)) / fXtal) * (getSignalBandwidth() / 500000.0f); // p. 37
 
   return static_cast<long>(fError);
@@ -371,18 +351,15 @@ void LoRaClass::flush()
 {
 }
 
-#ifndef ARDUINO_SAMD_MKRWAN1300
 void LoRaClass::onReceive(void (*callback)(int))
 {
   _onReceive = callback;
-  DBG("[onReceive]\n");
   if (callback)
   {
     pinMode(_dio0, INPUT);
     writeRegister(REG_DIO_MAPPING_1, 0x00);
 #ifdef SPI_HAS_NOTUSINGINTERRUPT
-    SPI.usingInterrupt(digitalPinToInterrupt(_dio0));
-    DBG("[usingInterrupt]\n");
+    LORA_DEFAULT_SPI.usingInterrupt(digitalPinToInterrupt(_dio0));
 #endif
     attachInterrupt(digitalPinToInterrupt(_dio0), LoRaClass::onDio0Rise, RISING);
   }
@@ -390,8 +367,7 @@ void LoRaClass::onReceive(void (*callback)(int))
   {
     detachInterrupt(digitalPinToInterrupt(_dio0));
 #ifdef SPI_HAS_NOTUSINGINTERRUPT
-    SPI.notUsingInterrupt(digitalPinToInterrupt(_dio0));
-    DBG("[notUsingInterrupt]\n");
+    LORA_DEFAULT_SPI.notUsingInterrupt(digitalPinToInterrupt(_dio0));
 #endif
   }
 }
@@ -411,7 +387,6 @@ void LoRaClass::receive(int size)
 
   writeRegister(REG_OP_MODE, MODE_LONG_RANGE_MODE | MODE_RX_CONTINUOUS);
 }
-#endif
 
 void LoRaClass::idle()
 {
@@ -474,9 +449,7 @@ void LoRaClass::setTxPower(int level, int outputPin)
 void LoRaClass::setFrequency(long frequency)
 {
   _frequency = frequency;
-
   uint64_t frf = ((uint64_t)frequency << 19) / 32000000;
-
   writeRegister(REG_FRF_MSB, (uint8_t)(frf >> 16));
   writeRegister(REG_FRF_MID, (uint8_t)(frf >> 8));
   writeRegister(REG_FRF_LSB, (uint8_t)(frf >> 0));
@@ -683,7 +656,7 @@ void LoRaClass::setPins(int ss, int reset, int dio0)
   _dio0 = dio0;
 }
 
-void LoRaClass::setSPI(SPIClass &spi)
+void LoRaClass::setSPI(RFClass &spi)
 {
   _spi = &spi;
 }
@@ -756,23 +729,18 @@ void LoRaClass::writeRegister(uint8_t address, uint8_t value)
 uint8_t LoRaClass::singleTransfer(uint8_t address, uint8_t value)
 {
   uint8_t response;
-
   digitalWrite(_ss, LOW);
-
   _spi->beginTransaction(_spiSettings);
   _spi->transfer(address);
   response = _spi->transfer(value);
   _spi->endTransaction();
-
   digitalWrite(_ss, HIGH);
-
   return response;
 }
 
 ISR_PREFIX void LoRaClass::onDio0Rise()
 {
   LoRa.handleDio0Rise();
-  //DBG("[DIO0]\n");
 }
 
 LoRaClass LoRa;
