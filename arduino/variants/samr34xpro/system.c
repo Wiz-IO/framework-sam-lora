@@ -31,6 +31,6 @@ void system_init(void)
 #endif
 
 #ifndef DISABLE_WATCHDOG
-    WDT->CTRLA.bit.ENABLE = 1;
+    WDT->CTRLA.bit.ENABLE = 1; // TODO disable allways run
 #endif
 }
