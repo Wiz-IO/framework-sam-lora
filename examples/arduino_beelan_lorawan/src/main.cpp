@@ -1,4 +1,9 @@
 /*
+    Open: 
+      framework-sam-lora/arduino/libraries/Beelan-LoRaWAN/src/Config.h and enable your band
+
+      abp.cpp and edit your settings
+
     Library info:
       https://github.com/BeelanMX/Beelan-LoRaWAN
 */
@@ -6,7 +11,6 @@
 #include <Arduino.h>
 #include <beelan-lorawan.h>
 
-//open abp.cpp and edit your settings
 extern const char *devAddr;
 extern const char *nwkSKey;
 extern const char *appSKey;
