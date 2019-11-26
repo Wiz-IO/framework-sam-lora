@@ -62,35 +62,38 @@
 *****************************************************************************************
 */
 void LORA_Cycle(sBuffer *Data_Tx, sBuffer *Data_Rx, RFM_command_t *RFM_Command, sLoRa_Session *Session_Data,
- 									sLoRa_OTAA *OTAA_Data, sLoRa_Message *Message_Rx, sSettings *LoRa_Settings)
+				sLoRa_OTAA *OTAA_Data, sLoRa_Message *Message_Rx, sSettings *LoRa_Settings)
 {
 	static const unsigned int Receive_Delay_1 = 500;
 	static const unsigned int Receive_Delay_2 = 1000;
 	unsigned long prevTime = 0;
 
-  //Transmit
-  if(*RFM_Command == NEW_RFM_COMMAND)
-  {
-    //Lora send data
-    LORA_Send_Data(Data_Tx, Session_Data, LoRa_Settings);
+	//Transmit
+	if (*RFM_Command == NEW_RFM_COMMAND)
+	{
+		//Lora send data
+		LORA_Send_Data(Data_Tx, Session_Data, LoRa_Settings);
 		prevTime = millis();
-    *RFM_Command = NO_RFM_COMMAND;
-  }
+		*RFM_Command = NO_RFM_COMMAND;
+	}
 
 	// wait rx1 window
-  while((digitalRead(RFM_pins.DIO0) != HIGH) && (millis() - prevTime < Receive_Delay_1));
+	while ((digitalRead(RFM_pins.DIO0) != HIGH) && ((millis() - prevTime) < Receive_Delay_1))
+	{
+	}
 
-  //Get data
+	//Get data
 	LORA_Receive_Data(Data_Rx, Session_Data, OTAA_Data, Message_Rx, LoRa_Settings);
-  *RFM_Command = NO_RFM_COMMAND;
-	
+	*RFM_Command = NO_RFM_COMMAND;
+
 	// wait rx2 window
-  while((digitalRead(RFM_pins.DIO0) != HIGH) && (millis() - prevTime < Receive_Delay_2));
+	while ((digitalRead(RFM_pins.DIO0) != HIGH) && ((millis() - prevTime) < Receive_Delay_2))
+	{
+	}
 
-  //Get data
+	//Get data
 	LORA_Receive_Data(Data_Rx, Session_Data, OTAA_Data, Message_Rx, LoRa_Settings);
-  *RFM_Command = NO_RFM_COMMAND;
-
+	*RFM_Command = NO_RFM_COMMAND;
 }
 
 /*

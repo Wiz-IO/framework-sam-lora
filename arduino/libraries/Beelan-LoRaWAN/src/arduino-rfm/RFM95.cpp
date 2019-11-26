@@ -187,10 +187,11 @@ static unsigned char RFM_Read(unsigned char RFM_Address)
   digitalWrite(RFM_pins.CS,HIGH);
 
   #ifdef DEBUG
-  Serial.print("RF Read ADDR: ");
-  Serial.print(RFM_Address, HEX);
-  Serial.print(" DATA: ");
-  Serial.println(RFM_Data, HEX);
+  //Serial.print("RF Read ADDR: ");
+  //Serial.print(RFM_Address, HEX);
+  //Serial.print(" DATA: ");
+  //Serial.println(RFM_Data, HEX);
+  Serial.printf("[RF-R] ADDR %02X, DATA %02X\n", RFM_Address, RFM_Data);
   #endif
 
   //Return received data
@@ -573,10 +574,11 @@ void RFM_Write(unsigned char RFM_Address, unsigned char RFM_Data)
 {
   // br: RF Transfer Debug
   #ifdef DEBUG
-    Serial.print("RF Write ADDR: ");
-    Serial.print(RFM_Address, HEX);
-    Serial.print(" DATA: ");
-    Serial.println(RFM_Data, HEX);
+    //Serial.print("RF Write ADDR: ");
+    //Serial.print(RFM_Address, HEX);
+    //Serial.print(" DATA: ");
+    //Serial.println(RFM_Data, HEX);
+    Serial.printf("[RF-W] ADDR %02X, DATA %02X\n", RFM_Address, RFM_Data);
   #endif
 
   //Set NSS pin Low to start communication
