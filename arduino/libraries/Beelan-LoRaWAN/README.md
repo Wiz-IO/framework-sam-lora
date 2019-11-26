@@ -1,4 +1,4 @@
-    Not tested in LoRaWAN network ( I not have coordinator )
+    Open Config.h and enable your band
 
     Library info:
       https://github.com/BeelanMX/Beelan-LoRaWAN
