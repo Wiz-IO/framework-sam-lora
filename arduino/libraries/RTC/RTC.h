@@ -27,6 +27,7 @@
 class RTCClass
 {
 private:
+    int started;
     void wait_busy()
     {
         while (RTC->MODE0.SYNCBUSY.reg)
@@ -35,12 +36,20 @@ private:
     }
 
 public:
-    RTCClass() {}
+    RTCClass() : started(0) {}
+    RTCClass(int start)
+    {
+        started = 0;
+        if (start)
+            begin();
+    }
 
     void begin()
     {
+        if (started)
+            return;
         /* Turn on the digital interface clock */
-        MCLK->APBAMASK.reg |= MCLK_APBAMASK_RTC; // system_apb_clock_set_mask(0, 0x100);
+        MCLK->APBAMASK.reg |= MCLK_APBAMASK_RTC;
 
         /* Select RTC clock */
         OSC32KCTRL->RTCCTRL.bit.RTCSEL = OSC32KCTRL_RTCCTRL_RTCSEL_XOSC1K_Val; // 1.024kHz from 32KHz external oscillator
@@ -54,17 +63,7 @@ public:
                                RTC_MODE0_CTRLA_COUNTSYNC |
                                RTC_MODE0_CTRLA_PRESCALER_DIV1024; // one second
         wait_busy();
-
-        //Serial.printf("RTC %08X", RTC->MODE0.CTRLA.reg);
-        //wait_busy();
-    }
-
-    void enable()
-    {
-        /* Enable RTC module. */
-        wait_busy();
-        RTC->MODE0.CTRLA.reg |= RTC_MODE0_CTRLA_ENABLE;
-        wait_busy();
+        started = 1;
     }
 
     void disable()
@@ -89,6 +88,8 @@ public:
 
     void set(uint32_t value)
     {
+        if (0 == started)
+            begin();
         wait_busy();
         RTC->MODE0.COUNT.reg = value;
         wait_busy();
@@ -96,14 +97,16 @@ public:
 
     inline uint32_t get()
     {
+        if (0 == started)
+            begin();
         wait_busy();
-        uint32_t val = RTC->MODE0.COUNT.reg;
-        wait_busy();
-        return val;
+        return RTC->MODE0.COUNT.reg;
     }
 
     void set_compare(uint32_t index, uint32_t value)
     {
+        if (0 == started)
+            begin();
         if (index > RTC_COMP32_NUM)
             abort();
         wait_busy();
@@ -113,16 +116,41 @@ public:
 
     uint32_t get_compare(uint32_t index)
     {
+        if (0 == started)
+            begin();
         if (index > RTC_COMP32_NUM)
             abort();
         wait_busy();
-        uint32_t val = RTC->MODE0.COMP[index].reg;
-        wait_busy();
-        return val;
+        return RTC->MODE0.COMP[index].reg;
     }
 
-    //start(uint32_t sleepTicks, void (*cb)(void)){}
-    //stop(){}
+    /* Enter in sleep and wakeup after n seconds */
+    void sleep_wakeup(uint32_t second)
+    {
+        if (0 == started)
+            begin();
+
+        if (0 == second)
+            second = 1;
+
+        delay(100);
+
+        NVIC_DisableIRQ(RTC_IRQn);
+        NVIC_ClearPendingIRQ(RTC_IRQn);
+        NVIC_SetPriority(RTC_IRQn, 0);
+        RTC->MODE0.INTFLAG.reg = -1; /* clear all */
+
+        set_compare(0, get() + second); 
+        sys_set_sleep_mode(SLEEP_MODE_BACKUP); 
+
+        //GCLK->CTRLA.reg = GCLK_CTRLA_SWRST;
+        //while (GCLK->SYNCBUSY.reg & GCLK_SYNCBUSY_SWRST) { }
+
+        /* enable compare interrupt */
+        NVIC_EnableIRQ(RTC_IRQn);
+        RTC->MODE0.INTENSET.bit.CMP0 = 1;
+        sys_sleep();
+    }
 };
 
 extern RTCClass rtc;
