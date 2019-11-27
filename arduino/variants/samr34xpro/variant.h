@@ -50,21 +50,20 @@ extern "C"
 #define LED_G                 (30) 
 #define BUTTON                (31) 
 
-/* Analog pins    TODO */
-#define PIN_A0               (14ul)
-#define PIN_A1               (15ul)
-#define PIN_A2               (16ul)
-#define PIN_A3               (17ul)
-#define PIN_DAC0             (14ul)
-static const uint8_t A0     = PIN_A0;
-static const uint8_t A1     = PIN_A1;
-static const uint8_t A2     = PIN_A2;
-static const uint8_t A3     = PIN_A3;
-static const uint8_t DAC0   = PIN_DAC0;
-#define ADC_RESOLUTION		  12
-#define REMAP_ANALOG_PIN_ID(pin)	if ( pin < A0 ) pin += A0
-/* Set default analog voltage reference */
+/* Analog pins */
+#define PIN_A0                (4)
+#define PIN_A1                (5)
+static const uint8_t A0       = PIN_A0;
+static const uint8_t A1       = PIN_A1;
+
+//#define PIN_DAC0            (14ul)
+//static const uint8_t DAC0   = PIN_DAC0;
+
+#define ADC_RESOLUTION		    (12)
 #define VARIANT_AR_DEFAULT	AR_DEFAULT
+#define REMAP_ANALOG_PIN_ID(pin)	if ( pin < A0 ) pin += A0
+
+
 
 
 /* Serial from table */
