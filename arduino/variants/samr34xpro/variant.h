@@ -64,8 +64,9 @@ static const uint8_t DAC0   = PIN_DAC0;
 #define ADC_RESOLUTION		  12
 #define REMAP_ANALOG_PIN_ID(pin)	if ( pin < A0 ) pin += A0
 /* Set default analog voltage reference */
-#define VARIANT_AR_DEFAULT	AR_DEFAULT  
-  
+#define VARIANT_AR_DEFAULT	AR_DEFAULT
+
+
 /* Serial from table */
 #define PIN_SERIAL_TX         (27) 
 #define PIN_SERIAL_RX         (28) 
@@ -75,11 +76,13 @@ static const uint8_t DAC0   = PIN_DAC0;
 #define PIN_WIRE_SDA          (34) 
 #define PIN_WIRE_SCL          (35) 
 
+
 /* SPI from table */
 #define PIN_SPI_MOSI          (36)
 #define PIN_SPI_MISO          (37)
 #define PIN_SPI_SCK           (38)
 #define PIN_SPI_SS            (39)
+
 
 /* RF from table */
 #define RF_SEL                (50)  
@@ -108,9 +111,6 @@ static const uint8_t DAC0   = PIN_DAC0;
 #define digitalPinToInterrupt(P)    ( P )
 
 extern uint32_t SystemCoreClock;
-
-int analogRead(uint8_t pin);
-void analogWrite(uint8_t pin, int val);
 
 #ifdef __cplusplus
 }
