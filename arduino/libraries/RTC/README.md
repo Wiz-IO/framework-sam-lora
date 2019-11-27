@@ -1,3 +1,7 @@
+
+Example
+
+```c
 #include <Arduino.h>
 #include <RTC.h>
 RTCClass rtc(1);
@@ -27,3 +31,4 @@ void loop()
     rtc.sleep_wakeup(10);
   }
 }
+```
