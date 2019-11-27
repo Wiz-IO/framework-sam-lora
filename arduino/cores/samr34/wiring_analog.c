@@ -225,8 +225,7 @@ extern "C"
         }
         ADC->REFCTRL.bit.REFSEL = mode;
         syncADC();
-        // Start conversion, since The first conversion after the reference is changed must not be used.
-        uint32_t valueRead __attribute__((unused));
+        // Start conversion, since The first conversion after the reference is changed must not be used.        
         ADC->CTRLA.bit.ENABLE = 0x01; // Enable ADC
         syncADC();
         ADC->SWTRIG.bit.START = 1;
@@ -234,6 +233,7 @@ extern "C"
         while (ADC->INTFLAG.bit.RESRDY == 0)
         { // Waiting for conversion to complete
         }
+        uint32_t valueRead __attribute__((unused));
         valueRead = ADC->RESULT.reg;  // Dummy read (will also clear the Data Ready flag)
         ADC->CTRLA.bit.ENABLE = 0x00; // Disable ADC
         syncADC();
@@ -247,11 +247,9 @@ extern "C"
         {
             initADC();
         }
-
 #if defined(REMAP_ANALOG_PIN_ID)
         REMAP_ANALOG_PIN_ID(pin);
 #endif
-
         // pinPeripheral now handles disabling the DAC (if active)
         if (pinPeripheral(pin, PIO_ANALOG_ADC) == RET_STATUS_OK)
         {
@@ -333,22 +331,18 @@ extern "C"
                 TCCx = (Tcc *)GetTC(g_APinDescription[pin].ulTCChannel);
                 timerIndex = timerNumber;
             }
-
 #if defined(TIMER_RESOLUTION_IS_16BIT)
             value = mapResolution(value, _writeResolution, 16);
 #else
             value = mapResolution(value, _writeResolution, 8);
 #endif
-
             if (!timerEnabled[timerIndex])
             {
                 timerEnabled[timerIndex] = true;
-
                 GCLK->PCHCTRL[timerClockIDs[timerIndex]].reg = (GCLK_PCHCTRL_CHEN | GCLK_PCHCTRL_GEN_GCLK5);
                 while ((GCLK->PCHCTRL[timerClockIDs[timerIndex]].reg & GCLK_PCHCTRL_CHEN) == 0)
                 { // wait for sync
                 }
-
                 // Set PORT. Note that COUNT16 usually maps to the same location as COUNT8, so COUNT16 is used in most cases with both 8-bit and 16-bit.
                 if (TCx)
                 {
@@ -360,11 +354,11 @@ extern "C"
                     // Set Timer counter Mode to 16 bits, normal PWM
                     TCx->COUNT16.CTRLA.reg |= TC_CTRLA_MODE_COUNT16;
 #else
-                // Set Timer counter Mode to 8 bits, normal PWM
-                TCx->COUNT8.CTRLA.reg |= TC_CTRLA_MODE_COUNT8;
-                syncTC_16(TCx);
-                // Set PER to maximum counter value
-                TCx->COUNT8.PER.reg = 0xFF;
+                    // Set Timer counter Mode to 8 bits, normal PWM
+                    TCx->COUNT8.CTRLA.reg |= TC_CTRLA_MODE_COUNT8;
+                    syncTC_16(TCx);
+                    // Set PER to maximum counter value
+                    TCx->COUNT8.PER.reg = 0xFF;
 #endif
                     syncTC_16(TCx);
                     // Set TCx as normal PWM
@@ -374,7 +368,7 @@ extern "C"
 #if defined(TIMER_RESOLUTION_IS_16BIT)
                     TCx->COUNT16.CC[timerChannel].reg = (uint16_t)value;
 #else
-                TCx->COUNT8.CC[timerChannel].reg = (uint8_t)value;
+                    TCx->COUNT8.CC[timerChannel].reg = (uint8_t)value;
 #endif
                     syncTC_16(TCx);
                     // Enable TCx
