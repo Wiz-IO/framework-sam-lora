@@ -21,6 +21,8 @@
 #ifndef __VARIANT_H__
 #define __VARIANT_H__
 
+#include <wiring_analog.h>
+
 #ifdef __cplusplus
 extern "C"
 {
@@ -48,6 +50,24 @@ extern "C"
 #define LED_G                 (30) 
 #define BUTTON                (31) 
 
+/* Analog pins    TODO */
+#define PIN_A0               (14ul)
+#define PIN_A1               (15ul)
+#define PIN_A2               (16ul)
+#define PIN_A3               (17ul)
+#define PIN_A4               (18ul)
+#define PIN_A5               (19ul)
+#define PIN_DAC0             (14ul)
+static const uint8_t A0     = PIN_A0;
+static const uint8_t A1     = PIN_A1;
+static const uint8_t A2     = PIN_A2;
+static const uint8_t A3     = PIN_A3;
+static const uint8_t DAC0   = PIN_DAC0;
+#define ADC_RESOLUTION		  12
+#define REMAP_ANALOG_PIN_ID(pin)	if ( pin < A0 ) pin += A0
+/* Set default analog voltage reference */
+#define VARIANT_AR_DEFAULT	AR_DEFAULT  
+  
 /* Serial from table */
 #define PIN_SERIAL_TX         (27) 
 #define PIN_SERIAL_RX         (28) 
