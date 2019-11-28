@@ -25,7 +25,7 @@ void loop()
   if (seconds() > 5) // blink 5 seconds and goto sleep-mode
   {
     pinMode(LED_G, INPUT);
-    Serial.printf("Go Sleep\n");
+    Serial.println("Go Sleep");
     rtc.sleep_wakeup(10); // sleep ... wakeup after 10 seconds
   }
 }
