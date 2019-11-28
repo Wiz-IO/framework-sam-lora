@@ -40,8 +40,7 @@ public:
     RTCClass(int start)
     {
         started = 0;
-        if (start)
-            begin();
+        begin();
     }
 
     void begin()
