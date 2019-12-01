@@ -47,29 +47,28 @@ public:
     {
         if (started)
             return;
-            
         /* Turn on the digital interface clock */
         MCLK->APBAMASK.reg |= MCLK_APBAMASK_RTC;
-
-        /* Reset module to hardware defaults. */
-        reset();
-
         /* Select RTC clock: 1.024kHz from 32KHz external oscillator  */
         OSC32KCTRL->RTCCTRL.bit.RTCSEL = OSC32KCTRL_RTCCTRL_RTCSEL_XOSC1K_Val;
-
-        RTC->MODE0.CTRLA.reg = RTC_MODE0_CTRLA_ENABLE |
-                               RTC_MODE0_CTRLA_MODE(0) |
-                               RTC_MODE0_CTRLA_COUNTSYNC |
-                               RTC_MODE0_CTRLA_PRESCALER_DIV1024; // one second // 0x00008B02
-        wait_busy();
-
+        /* Reset module to hardware defaults. */
+        reset();
+        /* Setup and Enable. */
+        while (0 == (RTC->MODE0.CTRLA.reg & RTC_MODE0_CTRLA_ENABLE)) // ?!?
+        {
+            RTC->MODE0.CTRLA.reg = RTC_MODE0_CTRLA_ENABLE |
+                                   RTC_MODE0_CTRLA_MODE(0) |
+                                   RTC_MODE0_CTRLA_COUNTSYNC |
+                                   RTC_MODE0_CTRLA_PRESCALER_DIV1024; // one second
+            wait_busy();
+        }
         started = 1;
     }
 
     void reset()
     {
-        disable();
-        RTC->MODE0.CTRLA.reg = RTC_MODE0_CTRLA_SWRST;
+        disable(); // before soft-reset
+        RTC->MODE0.CTRLA.reg |= RTC_MODE0_CTRLA_SWRST;
         while (RTC->MODE0.SYNCBUSY.reg || RTC->MODE0.CTRLA.bit.SWRST)
         {
         }
@@ -141,7 +140,7 @@ public:
         NVIC_EnableIRQ(RTC_IRQn);
         RTC->MODE0.INTENSET.bit.CMP0 = 1;
 
-        sys_set_sleep_mode(SLEEP_MODE_BACKUP);
+        sys_set_sleep_mode(SLEEP_MODE_BACKUP); 
         sys_sleep();
     }
 };

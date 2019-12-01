@@ -235,7 +235,7 @@ int pinPeripheral(uint32_t ulPin, uint32_t ulPeripheral)
   return 0l;
 }
 
-#if 0
+#if 1
 void pinMux(int pin, int peripheral)
 {
   uint8_t pinPort = GetPort(pin);
