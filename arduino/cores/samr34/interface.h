@@ -119,6 +119,9 @@ extern "C"
   }
 
   void gclk_setup(int generator, uint32_t reg);
+  void gclk_channel_setup(const uint8_t channel, uint32_t val);
+  void gclk_channel_enable(const uint8_t channel);
+  void gclk_channel_disable(const uint8_t channel);
 
   enum sleep_mode_e
   {
@@ -140,11 +143,8 @@ extern "C"
     }
   }
 
-  static inline void sys_sleep(void)
+  static inline void sys_sleep(void) /* DO NOT ENTER FAST ! */
   {
-    /* disable the watchdog timer */
-    //WDT->CTRLA.bit.ENABLE = 0;
-    delay(1000); // DO NOT ENTER FAST !
     __DSB();
     __WFI();
   }
@@ -165,10 +165,10 @@ extern "C"
     /** The system was last reset by the BOD12 */
     RESET_CAUSE_BOD12 = RSTC_RCAUSE_BOD12,
 #else
-    /** The system was last reset by the BOD VDD. */
-    RESET_CAUSE_BOD33 = RSTC_RCAUSE_BODVDD,
-    /** The system was last reset by the BOD CORE. */
-    RESET_CAUSE_BOD12 = RSTC_RCAUSE_BODCORE,
+  /** The system was last reset by the BOD VDD. */
+  RESET_CAUSE_BOD33 = RSTC_RCAUSE_BODVDD,
+  /** The system was last reset by the BOD CORE. */
+  RESET_CAUSE_BOD12 = RSTC_RCAUSE_BODCORE,
 #endif
     /** The system was last reset by the POR (Power on reset). */
     RESET_CAUSE_POR = RSTC_RCAUSE_POR,

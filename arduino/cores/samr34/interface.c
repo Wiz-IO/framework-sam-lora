@@ -17,30 +17,6 @@ uint32_t convert_byte_array_to_32_bit(uint8_t *data)
     return long_addr.u32;
 }
 
-#if DEBUG_ENABLE > 0
-
-#define DBG_UART SERCOM0
-
-char DBG_BUFFER[DBG_BUF_LEN];
-
-void putChar(char c)
-{
-    if (SERCOM0->USART.CTRLA.bit.ENABLE == 0)
-        return;
-    while (SERCOM0->USART.INTFLAG.bit.DRE == 0)
-    {
-    }
-    DBG_UART->USART.DATA.reg = c;
-}
-
-void putString(char *str)
-{
-    while (*str)
-        putChar(*str++);
-}
-
-#endif
-
 void gclk_setup(int generator, uint32_t reg)
 {
     while (gclk_is_syncing(generator))
@@ -50,6 +26,34 @@ void gclk_setup(int generator, uint32_t reg)
     while (gclk_is_syncing(generator))
     {
     }
+}
+
+void gclk_channel_setup(const uint8_t channel, uint32_t val)
+{
+    GCLK->PCHCTRL[channel].reg = val;
+    while (0 == (GCLK->PCHCTRL[channel].reg & GCLK_PCHCTRL_CHEN))
+    {
+    }
+}
+
+void gclk_channel_enable(const uint8_t channel)
+{
+    __disable_irq();
+    GCLK->PCHCTRL[channel].reg |= GCLK_PCHCTRL_CHEN;
+    while (GCLK->PCHCTRL[channel].reg & GCLK_PCHCTRL_CHEN)
+    {
+    }
+    __enable_irq();
+}
+
+void gclk_channel_disable(const uint8_t channel)
+{
+    __disable_irq();
+    GCLK->PCHCTRL[channel].reg &= ~GCLK_PCHCTRL_CHEN;
+    while (GCLK->PCHCTRL[channel].reg & GCLK_PCHCTRL_CHEN)
+    {
+    }
+    __enable_irq();
 }
 
 uint32_t rnd(void)
@@ -84,3 +88,29 @@ int serial_number(uint8_t *sn, uint32_t size)
     }
     return -1;
 }
+
+// Debug helper for C sources
+
+#if DEBUG_ENABLE > 0
+
+#define DBG_UART SERCOM0
+
+char DBG_BUFFER[DBG_BUF_LEN];
+
+void putChar(char c)
+{
+    if (DBG_UART->USART.CTRLA.bit.ENABLE == 0)
+        return;
+    while (DBG_UART->USART.INTFLAG.bit.DRE == 0)
+    {
+    }
+    DBG_UART->USART.DATA.reg = c;
+}
+
+void putString(char *str)
+{
+    while (*str)
+        putChar(*str++);
+}
+
+#endif
