@@ -18,15 +18,26 @@ void system_init(void)
     SUPC->INTFLAG.reg = SUPC_INTFLAG_BOD33RDY | SUPC_INTFLAG_BOD33DET;
 
     /* FLASH */
-    NVMCTRL->CTRLB.bit.RWS = 3;         /* wait states ??? */
+    NVMCTRL->CTRLB.bit.RWS = 3; /* wait states ? */
+
+#if 1
+    /* PERFORMANCE LEVEL 2 */
     PM->INTFLAG.reg = PM_INTFLAG_PLRDY; /* Switch to PL2 to be sure configuration of GCLK0 is safe */
     PM->PLCFG.reg = PM_PLCFG_PLSEL_PL2; /* Switch performance level = SYSTEM_PERFORMANCE_LEVEL_2 */
     while (!PM->INTFLAG.reg)
     { /* Waiting performance level ready */
     }
+#endif 
 
     init_system_clock();
     init_systick();
+
+#if 1
+    /* BOD33 disabled */
+    SUPC->BOD33.reg &= ~SUPC_BOD33_ENABLE;
+    /* VDDCORE is supplied BUCK converter */
+    SUPC->VREG.bit.SEL = SUPC_VREG_SEL_BUCK_Val;
+#endif 
 
 #ifndef DISABLE_UMM
     umm_init();

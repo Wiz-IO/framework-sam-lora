@@ -1,7 +1,7 @@
 #include "variant.h"
 #include <interface.h>
 
-uint32_t SystemCoreClock = VARIANT_MCK; // 48000000ul;
+uint32_t SystemCoreClock = 4000000; // default freq;
 
 static void waitForDFLL(void)
 {
@@ -23,12 +23,11 @@ static void enable_XOSC32K(void)
     }
 }
 
-/* 
-    from XOSC32K to DFLL48M 
-*/
+/*  from XOSC32K to DFLL48M  */
 void init_system_clock(void)
 {
-    enable_XOSC32K();
+    /* Turn on the digital interface clock: IS ON */
+    //system_apb_clock_set_mask(SYSTEM_CLOCK_APB_APBA, MCLK_APBAMASK_GCLK);
 
     /* Software reset the GCLK module to ensure it is re-initialized correctly */
     GCLK->CTRLA.reg = GCLK_CTRLA_SWRST;
@@ -36,14 +35,18 @@ void init_system_clock(void)
     {
     }
 
+    /* CPU and BUS clocks */
+    MCLK->BUPDIV.reg = MCLK_BUPDIV_BUPDIV(1 << 0);
+    MCLK->LPDIV.reg = MCLK_LPDIV_LPDIV(1 << 0);
+    MCLK->CPUDIV.reg = MCLK_CPUDIV_CPUDIV(1 << 0);
+
+    enable_XOSC32K();
+
     /* SWITCH GCLK1 TO XOSC32K */
     gclk_setup(1, GCLK_GENCTRL_GENEN | GCLK_GENCTRL_SRC_XOSC32K);
-    GCLK->PCHCTRL[0 /*GCLK_DFLL48M_REF*/].reg = GCLK_PCHCTRL_CHEN |
-                                                GCLK_PCHCTRL_GEN_GCLK1 | // SET TO GCLK1
-                                                GCLK_PCHCTRL_WRTLOCK;
-    while (0 == (GCLK->PCHCTRL[0].reg & GCLK_PCHCTRL_CHEN))
-    {
-    }
+
+    /* GCLK_DFLL48M_REF */
+    gclk_channel_setup(0, GCLK_PCHCTRL_GEN_GCLK1 | GCLK_PCHCTRL_CHEN | GCLK_PCHCTRL_WRTLOCK); // SET TO GCLK1
 
     /* Remove the OnDemand mode, Workaround for errata 9905 */
     OSCCTRL->DFLLCTRL.bit.ONDEMAND = 0;

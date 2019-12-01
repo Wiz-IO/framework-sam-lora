@@ -38,7 +38,7 @@ extern "C"
 
 #define VARIANT_MCK (48000000ul)
 
-#define NUM_PIN_DESCRIPTION_ENTRIES (63u) 
+#define NUM_PIN_DESCRIPTION_ENTRIES (63) 
 
 /* LED from table */
 #define LED_ON                (0) 
