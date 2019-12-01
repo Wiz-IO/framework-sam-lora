@@ -16,6 +16,10 @@
   You should have received a copy of the GNU Lesser General Public
   License along with this library; if not, write to the Free Software
   Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA   
+
+  Notes:
+    RF is child class of SPI - SERCOM4
+    RF not have power domain
  */
 
 #ifndef _RF_H_INCLUDED
@@ -23,60 +27,147 @@
 
 #include <SPI.h>
 
+extern "C" void pinMux(int pin, int peripheral);
+
 class RFClass : public SPIClass
 {
 public:
-    RFClass() : SPIClass(&sercom4, RF_MISO, RF_SCK, RF_MOSI, (SercomSpiTXPad)1, (SercomRXPad)0) {}
+    RFClass() : SPIClass(&sercom4, RF_MISO, RF_SCK, RF_MOSI, (SercomSpiTXPad)1, (SercomRXPad)0)
+    {
+        _started = 0;
+    }
 
     void begin()
     {
-        SPIClass::begin();
-        powerOnTCXO();
+        if (0 == _started)
+        {
+            enableOscilator();
+            SPIClass::begin();
+            reset();
+            _started = 1;
+        }
     }
 
-    void powerOnTCXO()
+    void end() // goto full sleep
     {
-#ifdef RF_TCXO
-        pinMode(RF_TCXO, OUTPUT);
+        if (_started)
+        {
+            sleep();
+        }
+        else
+        {
+            begin();
+            sleep();
+        }
+        SPIClass::end();        
+        disableOscilator();
+        disableSwitch();
+        digitalWrite(RF_SEL, 0);
+        pinMux(RF_MOSI, PER_ANALOG);
+        pinMux(RF_MISO, PER_ANALOG);
+        pinMux(RF_SCK, PER_ANALOG);       
+        _started = 0;
+    }
+
+    void enableOscilator()
+    {
+        initOscilator();
         digitalWrite(RF_TCXO, 1);
-        delay(2);
-#endif
+        delay(1);
     }
 
-    void powerOffTCXO()
+    void disableOscilator()
     {
-#ifdef RF_TCXO
-        pinMode(RF_TCXO, INPUT);
-#endif
+        initOscilator();
+        digitalWrite(RF_TCXO, 0);
+        delay(1);
     }
 
-    void enableCtrl()
+    void enableSwitch()
     {
-#ifdef RF_SWITCH
-        initCtrl();
+        initSwitch();
         digitalWrite(RF_SWITCH, 1);
-#endif
     }
 
-    void disableCtrl()
+    void disableSwitch()
     {
-#ifdef RF_SWITCH
-        initCtrl();
+        initSwitch();
         digitalWrite(RF_SWITCH, 0);
-#endif
     }
+
+    void reset()
+    {
+        static int once = 0;
+        if (0 == once)
+            pinMode(RF_SEL, OUTPUT);
+        digitalWrite(RF_SEL, 1);
+        delay(1);
+        if (0 == once)
+            pinMode(RF_RST, OUTPUT);
+        digitalWrite(RF_RST, 0);
+        delay(10);
+        digitalWrite(RF_RST, 1);
+        delay(10);
+        once = 1;
+    }
+
+    int version()
+    {
+        return (0x12 == readRegister(0x42)); // REG_VERSION ... is 0x12
+    }
+
+    void sleep()
+    {
+        while (0 != readRegister(1))
+            writeRegister(1, 0);
+    }
+
+    uint8_t readRegister(uint8_t address)
+    {
+        return singleTransfer(address & 0x7f, 0x00);
+    }
+
+    void writeRegister(uint8_t address, uint8_t value)
+    {
+        singleTransfer(address | 0x80, value);
+    }
+
+    friend class LoRaClass;
 
 private:
-    void initCtrl()
+    int _started;
+
+    void initSwitch()
     {
-#ifdef RF_SWITCH
-        static int enabled = 0;
-        if (0 == enabled)
-        {
-            pinMode(RF_SWITCH, OUTPUT);
-            enabled = 1;
-        }
-#endif
+        static int once = 0;
+        if (once)
+            return;
+        pinMode(RF_SWITCH, OUTPUT);
+        once = 1;
+    }
+
+    void initOscilator()
+    {
+        static int once = 0;
+        if (once)
+            return;
+        pinMode(RF_TCXO, OUTPUT);
+        once = 1;
+    }
+
+protected:
+    uint8_t singleTransfer(uint8_t address, uint8_t value)
+    {
+        if (0 == _started)
+            return 0;
+        uint8_t response;
+        digitalWrite(RF_SEL, 0);
+        beginTransaction(SPISettings(8000000, MSBFIRST, SPI_MODE0));
+        transfer(address);
+        response = transfer(value);
+        endTransaction();
+        digitalWrite(RF_SEL, 1);
+        return response;
     }
 };
 
