@@ -62,10 +62,7 @@ public:
         SPIClass::end();        
         disableOscilator();
         disableSwitch();
-        digitalWrite(RF_SEL, 0);
-        pinMux(RF_MOSI, PER_ANALOG);
-        pinMux(RF_MISO, PER_ANALOG);
-        pinMux(RF_SCK, PER_ANALOG);       
+        digitalWrite(RF_SEL, 0);     
         _started = 0;
     }
 
