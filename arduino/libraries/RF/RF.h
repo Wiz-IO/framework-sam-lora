@@ -62,7 +62,7 @@ public:
         SPIClass::end();        
         disableOscilator();
         disableSwitch();
-        digitalWrite(RF_SEL, 0);     
+        digitalWrite(RF_SEL, 0);
         _started = 0;
     }
 
@@ -77,7 +77,7 @@ public:
     {
         initOscilator();
         digitalWrite(RF_TCXO, 0);
-        delay(1);
+        delay(5);
     }
 
     void enableSwitch()
@@ -115,8 +115,20 @@ public:
 
     void sleep()
     {
-        while (0 != readRegister(1))
-            writeRegister(1, 0);
+        uint8_t op_mode, current_mode;
+        uint8_t new_mode = 0; // SLEEP_MODE
+        op_mode = readRegister(1);
+        current_mode = op_mode & 0x07;
+        if (new_mode != current_mode)
+        {
+            // Do the actual mode switch.
+            op_mode &= ~0x07;    // Clear old mode bits
+            op_mode |= new_mode; // Set new mode bits
+            while (op_mode != readRegister(1))
+            {
+                writeRegister(1, op_mode);
+            }
+        }
     }
 
     uint8_t readRegister(uint8_t address)
