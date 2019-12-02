@@ -35,6 +35,24 @@ private:
         }
     }
 
+    /*
+        Default function ... I dont know user pin/mux config
+        This make 65 uA on sleep backup mode
+    */
+    void kill_ports(void)
+    {
+        uint32_t cfg = (0xFFFF << PORT_WRCONFIG_PINMASK_Pos) | PORT_WRCONFIG_WRPMUX | PORT_WRCONFIG_WRPINCFG;
+        PORT->Group[0].WRCONFIG.reg = cfg;
+        PORT->Group[0].WRCONFIG.reg = cfg | PORT_WRCONFIG_HWSEL;
+        //PORT->Group[0].DIRCLR.reg = -1;
+        PORT->Group[1].WRCONFIG.reg = cfg;
+        PORT->Group[1].WRCONFIG.reg = cfg | PORT_WRCONFIG_HWSEL;
+        //PORT->Group[1].DIRCLR.reg = -1;
+        PORT->Group[2].WRCONFIG.reg = cfg;
+        PORT->Group[2].WRCONFIG.reg = cfg | PORT_WRCONFIG_HWSEL;
+        //PORT->Group[2].DIRCLR.reg = -1;
+    }
+
 public:
     RTCClass() : started(0) {}
     RTCClass(int start)
@@ -124,13 +142,21 @@ public:
         return RTC->MODE0.COMP[index].reg;
     }
 
-    /* Enter in sleep and wakeup after seconds */
-    void sleep_wakeup(uint32_t second)
+    /* 
+        Enter in sleep and wakeup after seconds 
+        use before_sleep() to "kill" your ports pin/mux values
+    */
+    void sleep_wakeup(uint32_t second, void (*before_sleep)(void) = NULL)
     {
         if (0 == started)
             begin();
         if (0 == second)
             second = 1;
+
+        if (NULL == before_sleep)
+            kill_ports();
+        else
+            before_sleep();
 
         NVIC_DisableIRQ(RTC_IRQn);
         set_compare(0, get() + second);
@@ -140,7 +166,7 @@ public:
         NVIC_EnableIRQ(RTC_IRQn);
         RTC->MODE0.INTENSET.bit.CMP0 = 1;
 
-        sys_set_sleep_mode(SLEEP_MODE_BACKUP); 
+        sys_set_sleep_mode(SLEEP_MODE_BACKUP);
         sys_sleep();
     }
 };

@@ -42,6 +42,8 @@ extern "C"
 #define interrupts() __enable_irq()
 #define noInterrupts() __disable_irq()
 
+  void digitalToggle(uint32_t ulPin, uint32_t pause);
+
   long atol(const char *s);
   char *itoa(int value, char *result, int base);
   char *ltoa(long value, char *result, int base);

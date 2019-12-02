@@ -30,6 +30,19 @@ extern "C"
     pinPeripheral(ulPin, ulMode);
   }
 
+  void digitalToggle(uint32_t ulPin, uint32_t pause)
+  {
+    uint8_t pinPort = GetPort(ulPin);
+    if (pinPort == NOT_A_PORT)
+      return;
+    uint8_t pinNum = GetPin(ulPin);
+    if (0 == (PORT->Group[pinPort].DIR.reg && (1ul << pinNum)))
+      return;
+    PORT->Group[pinPort].OUTTGL.reg = (1ul << pinNum);
+    if (pause)
+      delay(pause);
+  }
+
   void digitalWrite(uint32_t ulPin, uint32_t ulVal)
   {
     uint8_t pinPort = GetPort(ulPin);
