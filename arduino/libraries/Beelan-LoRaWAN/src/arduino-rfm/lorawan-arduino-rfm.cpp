@@ -125,7 +125,7 @@ bool LoRaWANClass::init(void)
 
     digitalWrite(RFM_pins.CS, HIGH);
 
-    RF.powerOnTCXO();
+    RF.enableOscilator();
 
     // Reset
     digitalWrite(RFM_pins.RST, HIGH);
