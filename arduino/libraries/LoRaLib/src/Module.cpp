@@ -15,7 +15,7 @@ void Module::init(uint8_t interface, uint8_t gpio)
   switch (interface)
   {
   case RADIOLIB_USE_SPI:
-    _spi->powerOnTCXO();
+    _spi->enableOscilator();
     pinMode(_cs, OUTPUT);
     digitalWrite(_cs, HIGH);
     _spi->begin();
