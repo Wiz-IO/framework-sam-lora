@@ -169,6 +169,43 @@ public:
         sys_set_sleep_mode(SLEEP_MODE_BACKUP);
         sys_sleep();
     }
+
+      /*
+        Store max uint32[ 4 ] values to rtc ram
+        rtc.set_backup(1, val_1);
+          ...
+        rtc.set_backup(4, val_1, val_2, val_3, val_4);
+    */
+    void set_backup(int n_values, ...)
+    {
+        n_values &= 3;
+        va_list list;
+        va_start(list, n_values);
+        for (int i = 0; i < n_values; i++)
+            RTC->MODE0.GP[i].reg = va_arg(list, uint32_t);
+        va_end(list);
+    }
+
+    /*
+        Restore max uint32[ 4 ] values from rtc ram
+        rtc.get_backup(1, &val_1);
+          ...
+        rtc.get_backup(4, &val_1, &val_2, &val_3, &val_4);
+    */
+    void get_backup(int n_values, ...)
+    {
+        n_values &= 3;
+        va_list list;
+        va_start(list, n_values);
+        for (int i = 0; i < n_values; i++)
+        {
+            uint32_t *p = va_arg(list, uint32_t *);
+            if (p)
+                *p = RTC->MODE0.GP[i].reg;
+        }
+        va_end(list);
+    }
+  
 };
 
 #endif
